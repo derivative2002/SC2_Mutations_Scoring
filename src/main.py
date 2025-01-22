@@ -9,6 +9,8 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from typing import Optional
+from torch.utils.tensorboard import SummaryWriter
+from transformers import get_cosine_schedule_with_warmup
 
 from data.preprocess import prepare_data, get_all_factors
 from models.gnn_attention import MutationGNN, MutationDataset, train_epoch, evaluate
@@ -16,8 +18,6 @@ from config.default_config import ModelConfig, TrainingConfig, DataConfig, PathC
 from utils.logger import TrainingLogger
 from utils.progress import EpochProgressBar, BatchProgressBar
 from utils.visualization import ModelVisualizer
-from utils.tensorboard import TensorBoardLogger
-from utils.scheduler import get_cosine_schedule_with_warmup
 
 def parse_args():
     """
@@ -60,8 +60,6 @@ def parse_args():
                       help='日志保存目录')
     parser.add_argument('--vis_dir', type=str, default=os.path.join(PathConfig.model_dir, 'visualization'),
                       help='可视化结果保存目录')
-    parser.add_argument('--tensorboard_dir', type=str, default=os.path.join(PathConfig.log_dir, 'tensorboard'),
-                      help='TensorBoard日志保存目录')
     
     return parser.parse_args()
 
@@ -78,13 +76,14 @@ def visualize_model(model: MutationGNN, train_loader: Optional[GraphDataLoader] 
     os.makedirs('visualizations', exist_ok=True)
     visualizer = ModelVisualizer(save_dir='visualizations')
     
-    # 可视化模型结构
-    visualizer.visualize_model_structure(model)
-    
-    # 获取一个批次的数据
+    # 使用TensorBoard可视化模型结构
     if train_loader is not None:
         batch = next(iter(train_loader))
         batch = batch.to(model.device)
+        writer = SummaryWriter('runs/mutation_scoring')
+        writer.add_graph(model, (batch.x, batch.edge_index, batch.map_id, batch.batch))
+        writer.close()
+        print("模型结构已保存到TensorBoard，可以使用 tensorboard --logdir runs/mutation_scoring 查看")
         
         # 获取注意力权重
         with torch.no_grad():
@@ -101,225 +100,149 @@ def visualize_model(model: MutationGNN, train_loader: Optional[GraphDataLoader] 
         visualizer.plot_attention_weights(attention_weights, map_names)
 
 def main():
-    # 1. 解析命令行参数
+    """
+    主函数
+    """
     args = parse_args()
     
-    # 2. 创建日志记录器和可视化器
-    logger = TrainingLogger(args.log_dir)
-    visualizer = ModelVisualizer(args.vis_dir)
-    tb_logger = TensorBoardLogger(args.tensorboard_dir)
-    
-    # 3. 设置随机种子和设备
+    # 设置随机种子
     torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    
+    # 创建必要的目录
+    os.makedirs(args.model_dir, exist_ok=True)
+    os.makedirs(args.checkpoint_dir, exist_ok=True)
+    os.makedirs(args.log_dir, exist_ok=True)
+    os.makedirs('runs/mutation_scoring', exist_ok=True)
+    
+    # 初始化日志记录器
+    logger = TrainingLogger(log_dir=args.log_dir)
+    
+    # 设置设备
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.logger.info(f"Using device: {device}")
     
-    # 4. 创建必要的目录
-    os.makedirs(args.model_dir, exist_ok=True)
-    os.makedirs(args.checkpoint_dir, exist_ok=True)
-    os.makedirs(args.vis_dir, exist_ok=True)
-    os.makedirs(args.tensorboard_dir, exist_ok=True)
-    
-    # 5. 加载和预处理数据
+    # 加载和预处理数据
     logger.logger.info("Loading and preprocessing data...")
     data_list, map_to_id = prepare_data(args.data_path)
     
-    # 6. 划分训练集和验证集
-    train_data, val_data = train_test_split(
-        data_list,
-        test_size=args.val_split,
-        random_state=args.seed
+    # 获取第一个数据样本来了解数据结构
+    first_data = data_list[0]
+    edge_index = first_data.edge_index
+    factor_mapping = {str(i): i for i in range(first_data.x.size(1))}  # 从特征维度推断因子数量
+    
+    # 打印因子映射
+    logger.logger.info("\nFactor mapping:")
+    for factor, idx in factor_mapping.items():
+        logger.logger.info(f"{factor}: {idx}")
+    
+    # 打印边的信息
+    logger.logger.info(f"\nNumber of edges: {edge_index.size(1)}")
+    logger.logger.info(f"Edge index range: [{edge_index.min().item()}, {edge_index.max().item()}]")
+    logger.logger.info(f"Number of factors: {len(factor_mapping)}")
+    logger.logger.info(f"Edge index shape: {edge_index.shape}")
+    logger.logger.info(f"Edge index max value: {edge_index.max().item()}")
+    logger.logger.info(f"Edge index min value: {edge_index.min().item()}")
+    
+    # 划分训练集和验证集
+    indices = np.arange(len(data_list))
+    train_indices, val_indices = train_test_split(
+        indices, test_size=args.val_split, random_state=args.seed
     )
-    logger.logger.info(f"Train size: {len(train_data)}, Val size: {len(val_data)}")
     
-    # 7. 创建数据加载器
-    train_dataset = MutationDataset(train_data)
-    val_dataset = MutationDataset(val_data)
+    # 创建训练集和验证集
+    train_dataset = [data_list[i] for i in train_indices]
+    val_dataset = [data_list[i] for i in val_indices]
     
-    train_loader = GraphDataLoader(
-        train_dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=DataConfig.num_workers
-    )
-    val_loader = GraphDataLoader(
-        val_dataset,
-        batch_size=args.batch_size,
-        shuffle=False,
-        num_workers=DataConfig.num_workers
-    )
+    # 创建数据加载器
+    train_loader = GraphDataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+    val_loader = GraphDataLoader(val_dataset, batch_size=args.batch_size)
     
-    # 8. 初始化模型
-    num_factors = train_data[0].x.size(1)
-    num_maps = len(map_to_id)
+    logger.logger.info(f"Train size: {len(train_dataset)}, Val size: {len(val_dataset)}")
     
+    # 初始化模型
     model = MutationGNN(
-        num_factors=num_factors,
-        num_maps=num_maps,
+        num_factors=len(factor_mapping),
+        num_maps=len(map_to_id),
         hidden_dim=args.hidden_dim,
         num_gnn_layers=args.num_gnn_layers,
-        num_classes=ModelConfig.num_classes,
-        dropout=args.dropout
+        dropout=args.dropout,
+        device=device
     ).to(device)
+    
     logger.logger.info(f"Model initialized with {sum(p.numel() for p in model.parameters())} parameters")
     
-    # 9. 设置损失函数和优化器
+    # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss(label_smoothing=TrainingConfig.label_smoothing)
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=args.lr,
-        weight_decay=args.weight_decay,
-        betas=(0.9, 0.999)
+        weight_decay=TrainingConfig.weight_decay,
+        betas=(0.9, 0.999),
+        eps=1e-8
     )
     
-    # 学习率调度器
+    # 创建学习率调度器
     num_training_steps = len(train_loader) * args.num_epochs
     num_warmup_steps = len(train_loader) * TrainingConfig.warmup_epochs
     
     scheduler = get_cosine_schedule_with_warmup(
         optimizer,
         num_warmup_steps=num_warmup_steps,
-        num_training_steps=num_training_steps,
-        num_cycles=0.5,
-        min_lr=TrainingConfig.min_lr
+        num_training_steps=num_training_steps
     )
     
-    # 10. 训练模型
-    best_val_acc = 0
-    best_model_path = os.path.join(args.model_dir, 'best_model.pth')
-    patience_counter = 0
+    # 创建 TensorBoard writer
+    writer = SummaryWriter('runs/mutation_scoring')
     
+    # 开始训练
     logger.logger.info("Starting training...")
-    pbar = EpochProgressBar(args.num_epochs)
+    best_val_acc = 0.0
+    progress_bar = EpochProgressBar(args.num_epochs)
     
-    train_losses = []
-    val_losses = []
-    val_accs = []
-    
-    for epoch in range(args.num_epochs):
-        # 训练一个epoch
-        train_loss = train_epoch(
-            model, 
-            train_loader, 
-            criterion, 
-            optimizer, 
-            scheduler,
-            device,
-            grad_clip=TrainingConfig.grad_clip
-        )
-        train_losses.append(train_loss)
-        
-        # 验证
-        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
-        val_losses.append(val_loss)
-        val_accs.append(val_acc)
-        
-        # 记录训练信息
-        logger.log_epoch(epoch + 1, train_loss, val_loss, val_acc)
-        
-        # 更新进度条
-        pbar.update_metrics(
-            epoch + 1,
-            train_loss,
-            val_loss,
-            val_acc,
-            best_val_acc
-        )
-        
-        # TensorBoard记录
-        tb_logger.log_scalars(
-            'loss',
-            {
-                'train': train_loss,
-                'val': val_loss
-            },
-            epoch + 1
-        )
-        tb_logger.log_scalar('accuracy/val', val_acc, epoch + 1)
-        tb_logger.log_scalar('learning_rate', optimizer.param_groups[0]['lr'], epoch + 1)
-        
-        # 计算并记录混淆矩阵
-        all_preds = []
-        all_labels = []
-        model.eval()
-        with torch.no_grad():
-            for data in val_loader:
-                data = data.to(device)
-                out = model(data.x, data.edge_index, data.map_id, data.batch)
-                pred = out.argmax(dim=1)
-                all_preds.extend(pred.cpu().numpy())
-                all_labels.extend(data.y.cpu().numpy())
-        
-        conf_matrix = confusion_matrix(all_labels, all_preds)
-        tb_logger.log_confusion_matrix(
-            'confusion_matrix',
-            conf_matrix,
-            epoch + 1
-        )
-        
-        # 保存最佳模型
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
-            torch.save({
-                'epoch': epoch + 1,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
-                'best_val_acc': best_val_acc,
-                'train_losses': train_losses,
-                'val_losses': val_losses,
-                'val_accs': val_accs
-            }, best_model_path)
-            logger.log_model_save(best_model_path)
-            patience_counter = 0
+    try:
+        for epoch in range(1, args.num_epochs + 1):
+            # 训练一个epoch
+            train_loss = train_epoch(model, train_loader, criterion, optimizer, scheduler, device, grad_clip=1.0)
             
-            # 可视化最佳模型的中间结果
-            visualize_model(
-                model,
-                train_loader,
-                args.data_path
-            )
-        else:
-            patience_counter += 1
-        
-        # 早停
-        if patience_counter >= TrainingConfig.early_stopping_patience:
-            logger.log_early_stopping(epoch + 1)
-            break
-        
-        # 保存检查点
-        if (epoch + 1) % 10 == 0:
-            checkpoint_path = os.path.join(
-                args.checkpoint_dir,
-                f'checkpoint_epoch_{epoch+1}.pth'
-            )
-            torch.save({
-                'epoch': epoch + 1,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
-                'best_val_acc': best_val_acc,
-                'train_losses': train_losses,
-                'val_losses': val_losses,
-                'val_accs': val_accs
-            }, checkpoint_path)
-            logger.log_model_save(checkpoint_path)
+            # 在验证集上评估
+            val_loss, val_acc = evaluate(model, val_loader, criterion, device)
+            
+            # 更新进度条
+            progress_bar.update(1)
+            
+            # 记录指标
+            logger.logger.info(f"Epoch [{epoch}] - Train Loss: {train_loss:.4f} - Val Loss: {val_loss:.4f} - Val Acc: {val_acc:.4f} - Best Val Acc: {best_val_acc:.4f}")
+            
+            # 记录TensorBoard日志
+            try:
+                writer.add_scalar('Loss/train', train_loss, epoch)
+                writer.add_scalar('Loss/val', val_loss, epoch)
+                writer.add_scalar('Accuracy/val', val_acc, epoch)
+            except Exception as e:
+                logger.logger.warning(f"Failed to write to TensorBoard: {str(e)}")
+            
+            # 如果是最佳模型，保存检查点
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                torch.save(model.state_dict(), os.path.join(args.model_dir, 'best_model.pth'))
+                logger.logger.info("Model saved to model/best_model.pth")
+                
+                # 在保存最佳模型时进行可视化
+                try:
+                    visualize_model(model, train_loader, args.data_path)
+                except Exception as e:
+                    logger.logger.warning(f"Failed to visualize model: {str(e)}")
     
-    pbar.close()
-    
-    # 11. 绘制训练历史
-    visualizer.plot_training_history(
-        train_losses,
-        val_losses,
-        val_accs
-    )
-    
-    # 12. 关闭TensorBoard写入器
-    tb_logger.close()
-    
-    logger.log_training_complete()
+    except KeyboardInterrupt:
+        logger.logger.info("Training interrupted by user")
+    except Exception as e:
+        logger.logger.error(f"Training failed with error: {str(e)}")
+    finally:
+        writer.close()
+        progress_bar.close()
 
-def train_epoch(model, loader, criterion, optimizer, scheduler, device, grad_clip=None):
+def train_epoch(model, loader, criterion, optimizer, scheduler, device, grad_clip=1.0):
     """
     训练一个epoch
     
@@ -347,6 +270,10 @@ def train_epoch(model, loader, criterion, optimizer, scheduler, device, grad_cli
         
         out, _ = model(data.x, data.edge_index, data.map_id, data.batch, return_attention=True)
         loss = criterion(out, data.y)
+        
+        # 添加L2正则化损失
+        if hasattr(model, 'current_l2_loss'):
+            loss = loss + model.current_l2_loss
         
         loss.backward()
         

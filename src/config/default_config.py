@@ -4,26 +4,26 @@
 
 class ModelConfig:
     """模型配置"""
-    hidden_dim = 256
-    num_gnn_layers = 4
+    hidden_dim = 512
+    num_gnn_layers = 6
     num_classes = 10
-    dropout = 0.2
-    num_heads = 8
-    attention_dropout = 0.1
+    dropout = 0.5
+    num_heads = 12
+    attention_dropout = 0.3
 
 class TrainingConfig:
     """训练配置"""
-    batch_size = 16
+    batch_size = 32
     num_epochs = 200
-    learning_rate = 2e-4
-    weight_decay = 1e-5
-    lr_reduce_factor = 0.7
-    lr_reduce_patience = 8
+    learning_rate = 1e-4
+    weight_decay = 0.01
+    lr_reduce_factor = 0.5
+    lr_reduce_patience = 5
     min_lr = 1e-6
-    warmup_epochs = 10
+    warmup_epochs = 15
     early_stopping_patience = 20
-    grad_clip = 0.5
-    label_smoothing = 0.15
+    grad_clip = 1.0
+    label_smoothing = 0.1
 
 class DataConfig:
     """数据配置"""

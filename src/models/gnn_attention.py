@@ -13,88 +13,129 @@ class MutationGNN(nn.Module):
         self,
         num_factors: int,
         num_maps: int,
-        hidden_dim: int = 128,  # 增加基础隐藏维度
-        num_gnn_layers: int = 3,
+        hidden_dim: int = 256,  # 增加隐藏维度
+        num_gnn_layers: int = 4,  # 增加GNN层数
         num_classes: int = 10,
-        dropout: float = 0.3,
+        dropout: float = 0.5,
+        l2_lambda: float = 0.01,
         device: torch.device = None
     ):
         super().__init__()
         
-        self.device = device if device is not None else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if device is None:
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = device
+        
         self.hidden_dim = hidden_dim
+        self.l2_lambda = l2_lambda
+        
+        # 输入投影层
+        self.input_proj = nn.Sequential(
+            nn.Linear(1, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout)
+        )
         
         # GNN层
         self.gnn_layers = nn.ModuleList()
-        self.gnn_layers.append(GATConv(1, hidden_dim, heads=8))
+        self.gnn_layers.append(GATConv(hidden_dim, hidden_dim, heads=12, dropout=dropout))  # 增加注意力头数
         
         # 中间GNN层带残差连接和跳跃连接
         for _ in range(num_gnn_layers - 1):
             self.gnn_layers.append(
-                GATConv(hidden_dim * 8, hidden_dim, heads=8)
+                GATConv(hidden_dim * 12, hidden_dim, heads=12, dropout=dropout)
             )
         
         # 层归一化
         self.layer_norms = nn.ModuleList([
-            nn.LayerNorm(hidden_dim * 8) for _ in range(num_gnn_layers)
+            nn.LayerNorm(hidden_dim * 12) for _ in range(num_gnn_layers)
         ])
         
         # 跳跃连接投影
         self.skip_projections = nn.ModuleList([
-            nn.Linear(hidden_dim * 8, hidden_dim * 8) 
+            nn.Sequential(
+                nn.Linear(hidden_dim * 12, hidden_dim * 12),
+                nn.LayerNorm(hidden_dim * 12),
+                nn.GELU(),
+                nn.Dropout(dropout)
+            )
             for _ in range(num_gnn_layers - 1)
         ])
             
         # 地图嵌入
-        self.map_embedding = nn.Embedding(num_maps, hidden_dim * 4)
+        self.map_embedding = nn.Embedding(num_maps, hidden_dim * 6)
         self.map_proj = nn.Sequential(
-            nn.Linear(hidden_dim * 4, hidden_dim * 8),
-            nn.LayerNorm(hidden_dim * 8),
+            nn.Linear(hidden_dim * 6, hidden_dim * 12),
+            nn.LayerNorm(hidden_dim * 12),
             nn.GELU(),
             nn.Dropout(dropout)
         )
         
         # 节点嵌入投影
         self.node_proj = nn.Sequential(
-            nn.Linear(hidden_dim * 8 * 3, hidden_dim * 8),
-            nn.LayerNorm(hidden_dim * 8),
+            nn.Linear(hidden_dim * 12 * 3, hidden_dim * 12),
+            nn.LayerNorm(hidden_dim * 12),
             nn.GELU(),
             nn.Dropout(dropout)
         )
         
-        # 注意力层
-        self.self_attention = nn.MultiheadAttention(
-            embed_dim=hidden_dim * 8,
-            num_heads=8,
-            dropout=dropout,
-            batch_first=True
-        )
+        # 多头自注意力层
+        self.self_attention_layers = nn.ModuleList([
+            nn.MultiheadAttention(
+                embed_dim=hidden_dim * 12,
+                num_heads=12,
+                dropout=dropout,
+                batch_first=True
+            ) for _ in range(2)  # 使用2层自注意力
+        ])
         
-        self.cross_attention = nn.MultiheadAttention(
-            embed_dim=hidden_dim * 8,
-            num_heads=8,
-            dropout=dropout,
-            batch_first=True
-        )
+        # 多头交叉注意力层
+        self.cross_attention_layers = nn.ModuleList([
+            nn.MultiheadAttention(
+                embed_dim=hidden_dim * 12,
+                num_heads=12,
+                dropout=dropout,
+                batch_first=True
+            ) for _ in range(2)  # 使用2层交叉注意力
+        ])
         
-        # 特征融合
+        # 特征融合网络
         self.feature_fusion = nn.Sequential(
-            nn.Linear(hidden_dim * 8 * 3, hidden_dim * 8),
+            nn.Linear(hidden_dim * 12 * 3, hidden_dim * 12),
+            nn.LayerNorm(hidden_dim * 12),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 12, hidden_dim * 8),
             nn.LayerNorm(hidden_dim * 8),
             nn.GELU(),
             nn.Dropout(dropout)
         )
         
         # 输出层
-        self.fc1 = nn.Linear(hidden_dim * 8, hidden_dim * 4)
-        self.fc2 = nn.Linear(hidden_dim * 4, hidden_dim * 2)
-        self.fc3 = nn.Linear(hidden_dim * 2, num_classes)
+        self.fc_layers = nn.Sequential(
+            nn.Linear(hidden_dim * 8, hidden_dim * 4),
+            nn.LayerNorm(hidden_dim * 4),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 4, hidden_dim * 2),
+            nn.LayerNorm(hidden_dim * 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim * 2, num_classes)
+        )
         
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm_final = nn.LayerNorm(hidden_dim * 4)
         
         # 将模型移动到指定设备
         self.to(self.device)
+        
+    def l2_regularization(self):
+        """计算L2正则化损失"""
+        l2_loss = 0.0
+        for param in self.parameters():
+            l2_loss += torch.norm(param, p=2)
+        return self.l2_lambda * l2_loss
         
     def forward(self, x, edge_index, map_id, batch=None, return_attention=False):
         """
@@ -111,7 +152,10 @@ class MutationGNN(nn.Module):
             out: 输出预测 [batch_size, num_classes]
             attention_weights: 注意力权重 [batch_size, 1, 1]（如果return_attention=True）
         """
-        # 1. GNN处理因子关系
+        # 输入特征投影
+        x = self.input_proj(x)
+        
+        # GNN特征提取
         factor_embeddings = []
         skip_connection = None
         
@@ -137,38 +181,46 @@ class MutationGNN(nn.Module):
                 
             factor_embeddings.append(x)
         
-        # 2. 多尺度图池化
+        # 图池化
         if batch is None:
             batch = torch.zeros(x.size(0), dtype=torch.long, device=self.device)
             
-        # 使用不同的池化方法
         pooled_mean = global_mean_pool(x, batch)
         pooled_max = global_max_pool(x, batch)
         pooled_add = global_add_pool(x, batch)
         
-        # 合并不同池化结果并投影
+        # 节点表示融合
         node_embeddings = torch.cat([pooled_mean, pooled_max, pooled_add], dim=1)
-        node_embeddings = self.node_proj(node_embeddings)  # [batch_size, hidden_dim * 8]
+        node_embeddings = self.node_proj(node_embeddings)
         
-        # 3. 地图嵌入
-        map_embeddings = self.map_embedding(map_id)  # [batch_size, hidden_dim * 4]
-        map_embeddings = self.map_proj(map_embeddings)  # [batch_size, hidden_dim * 8]
+        # 地图嵌入
+        map_embeddings = self.map_embedding(map_id)
+        map_embeddings = self.map_proj(map_embeddings)
         
-        # 4. 多层注意力机制
-        # 自注意力
+        # 多层自注意力
         query = node_embeddings.unsqueeze(1)
-        self_attn_output, self_attn_weights = self.self_attention(
-            query, query, query
-        )
+        self_attn_output = query
+        self_attn_weights_list = []
         
-        # 交叉注意力
+        for self_attn in self.self_attention_layers:
+            self_attn_output, self_attn_weights = self_attn(
+                self_attn_output, self_attn_output, self_attn_output
+            )
+            self_attn_weights_list.append(self_attn_weights)
+        
+        # 多层交叉注意力
         key = map_embeddings.unsqueeze(1)
         value = map_embeddings.unsqueeze(1)
-        cross_attn_output, cross_attn_weights = self.cross_attention(
-            query, key, value
-        )
+        cross_attn_output = query
+        cross_attn_weights_list = []
         
-        # 5. 特征融合
+        for cross_attn in self.cross_attention_layers:
+            cross_attn_output, cross_attn_weights = cross_attn(
+                cross_attn_output, key, value
+            )
+            cross_attn_weights_list.append(cross_attn_weights)
+        
+        # 特征融合
         if skip_connection is not None:
             skip_connection = global_mean_pool(skip_connection, batch)
         else:
@@ -182,23 +234,19 @@ class MutationGNN(nn.Module):
         
         fused = self.feature_fusion(combined)
         
-        # 6. 输出层
-        out = self.fc1(fused)
-        out = F.gelu(out)
-        out = self.dropout(out)
-        out = self.layer_norm_final(out)
+        # 输出层
+        out = self.fc_layers(fused)
         
-        out = self.fc2(out)
-        out = F.gelu(out)
-        out = self.dropout(out)
-        
-        out = self.fc3(out)
+        # 添加L2正则化损失
+        if self.training:
+            self.current_l2_loss = self.l2_regularization()
+            out = out + self.current_l2_loss
         
         # 保存中间结果供可视化使用
         self._last_factor_embeddings = factor_embeddings[-1]
         self._last_attention_weights = {
-            'self_attention': self_attn_weights,
-            'cross_attention': cross_attn_weights
+            'self_attention': self_attn_weights_list,
+            'cross_attention': cross_attn_weights_list
         }
         
         if return_attention:
