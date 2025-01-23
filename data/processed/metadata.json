@@ -1,5 +1,5 @@
 {
-  "max_mutations": 10,
+  "max_mutations": 8,
   "num_classes": 5,
   "class_weights": [
     19.0,

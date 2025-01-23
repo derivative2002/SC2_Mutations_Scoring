@@ -31,6 +31,7 @@ class Trainer:
                  val_loader: DataLoader,
                  optimizer: torch.optim.Optimizer,
                  scheduler: Optional[torch.optim.lr_scheduler._LRScheduler],
+                 criterion: nn.Module,
                  num_epochs: int,
                  device: torch.device,
                  save_dir: str,
@@ -43,6 +44,7 @@ class Trainer:
             val_loader: 验证数据加载器
             optimizer: 优化器
             scheduler: 学习率调度器
+            criterion: 损失函数
             num_epochs: 训练轮数
             device: 设备
             save_dir: 模型保存目录
@@ -53,6 +55,7 @@ class Trainer:
         self.val_loader = val_loader
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.criterion = criterion
         self.num_epochs = num_epochs
         self.device = device
         
@@ -67,9 +70,6 @@ class Trainer:
         # 创建TensorBoard写入器
         self.writer = SummaryWriter(str(tensorboard_dir))
         logger.info(f"TensorBoard日志目录: {tensorboard_dir}")
-        
-        # 损失函数
-        self.criterion = nn.CrossEntropyLoss()
         
         # 最佳验证指标
         self.best_val_acc = 0.0

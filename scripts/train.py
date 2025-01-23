@@ -9,11 +9,13 @@ from pathlib import Path
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+import numpy as np
 
 from src.data.dataset import get_dataloaders
 from src.models.networks import MutationScorer
 from src.training.trainer import Trainer
 from src.utils.config import Config
+from src.utils.metrics import analyze_class_distribution, FocalLoss
 
 # 配置日志
 logging.basicConfig(
@@ -50,6 +52,10 @@ def main(args=None):
     device = torch.device(
         config.training.device if torch.cuda.is_available() else 'cpu')
     logger.info(f"使用设备: {device}")
+    logger.info(f"CUDA是否可用: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        logger.info(f"当前GPU: {torch.cuda.get_device_name()}")
+        logger.info(f"GPU数量: {torch.cuda.device_count()}")
     
     # 创建数据加载器
     train_loader, val_loader = get_dataloaders(
@@ -66,6 +72,12 @@ def main(args=None):
     vocab_sizes = train_loader.dataset.vocab_sizes
     logger.info(f"词表大小: {vocab_sizes}")
     
+    # 分析类别分布
+    all_labels = []
+    for batch in train_loader:
+        all_labels.extend(batch['labels'].numpy())
+    class_dist, class_weights = analyze_class_distribution(np.array(all_labels))
+
     # 创建模型
     model = MutationScorer(
         num_maps=vocab_sizes['map'],
@@ -82,6 +94,9 @@ def main(args=None):
     )
     model = model.to(device)
     logger.info(f"模型参数量: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
+    
+    # 使用focal loss
+    criterion = FocalLoss(alpha=class_weights.to(device), gamma=2.0)
     
     # 创建优化器和学习率调度器
     optimizer = optim.Adam(
@@ -105,6 +120,7 @@ def main(args=None):
         val_loader=val_loader,
         optimizer=optimizer,
         scheduler=scheduler,
+        criterion=criterion,
         num_epochs=config.training.num_epochs,
         device=device,
         save_dir=config.experiment.save_dir,
