@@ -1,0 +1,40 @@
+# 数据配置
+data:
+  raw_data_path: data/raw/sc2_mutations_duo.csv
+  processed_dir: data/processed
+  max_mutations: 10
+  val_ratio: 0.1
+  batch_size: 32
+  num_workers: 4
+  use_weighted_sampler: true
+
+# 模型配置
+model:
+  # 嵌入维度
+  map_dim: 64
+  commander_dim: 128
+  mutation_dim: 96
+  ai_dim: 32
+  # MLP配置
+  hidden_dims: [512, 256, 128]
+  dropout: 0.2
+  embed_dropout: 0.1
+
+# 训练配置
+training:
+  num_epochs: 100
+  lr: 1e-3
+  weight_decay: 1e-4
+  # 学习率调度器
+  scheduler:
+    factor: 0.5
+    patience: 5
+    min_lr: 1e-6
+  # 设备
+  device: cuda
+
+# 实验配置
+experiment:
+  name: baseline  # 实验名称
+  save_dir: experiments  # 保存目录
+  seed: 42  # 随机种子 

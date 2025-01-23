@@ -1,0 +1,7 @@
+README.md
+setup.py
+sc2_mutations_scoring.egg-info/PKG-INFO
+sc2_mutations_scoring.egg-info/SOURCES.txt
+sc2_mutations_scoring.egg-info/dependency_links.txt
+sc2_mutations_scoring.egg-info/requires.txt
+sc2_mutations_scoring.egg-info/top_level.txt

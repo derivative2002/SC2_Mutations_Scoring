@@ -1,92 +1,140 @@
-# SC2 突变评级预测模型
+# SC2 Mutations Scoring
 
-这个项目使用图神经网络（GNN）和注意力机制来预测星际争霸2合作模式中突变任务的难度评级。
+星际争霸2合作模式突变难度评分系统。基于深度学习模型,通过分析地图、指挥官组合、突变因子和敌方AI等特征,预测任务难度等级(1-5分)。
 
 ## 项目结构
 
 ```
-SC2_Mutations_Scoring/
+SC2_Mutations_Scoring/          # 项目根目录
+├── README.md                  # 项目说明文档
+├── requirements.txt           # 依赖包
+├── configs/                   # 配置文件目录
+│   ├── __init__.py
+│   ├── model_config.py       # 模型配置
+│   └── train_config.py       # 训练配置
 ├── data/                      # 数据目录
-│   └── raw/                   # 原始数据
-│       └── train.csv          # 训练数据
-├── src/                       # 源代码
-│   ├── config/                # 配置文件
-│   │   └── default_config.py  # 默认配置
-│   ├── data/                  # 数据处理
-│   │   └── preprocess.py      # 数据预处理
-│   ├── models/                # 模型定义
-│   │   └── gnn_attention.py   # GNN和注意力模型
-│   └── utils/                 # 工具函数
-│       ├── logger.py          # 日志工具
-│       ├── progress.py        # 进度条工具
-│       └── visualization.py   # 可视化工具
-├── model/                     # 模型保存目录
-│   ├── checkpoints/          # 检查点
-│   └── best_model.pth        # 最佳模型
-├── logs/                      # 日志目录
-├── visualizations/            # 可视化输出目录
-├── requirements.txt           # 项目依赖
-└── README.md                  # 项目说明
+│   ├── raw/                  # 原始数据
+│   │   └── sc2_mutations_raw.csv
+│   └── processed/            # 处理后数据
+│       ├── sc2_mutations_duo.csv
+│       └── metadata.json
+├── src/                      # 源代码目录
+│   ├── __init__.py
+│   ├── data/                # 数据处理相关
+│   │   ├── __init__.py
+│   │   ├── dataset.py      # 数据集类
+│   │   └── preprocess.py   # 数据预处理
+│   ├── models/             # 模型相关
+│   │   ├── __init__.py
+│   │   ├── embeddings.py   # Embedding层
+│   │   └── networks.py     # 网络结构
+│   ├── training/           # 训练相关
+│   │   ├── __init__.py
+│   │   ├── trainer.py      # 训练器
+│   │   └── metrics.py      # 评估指标
+│   └── utils/              # 工具函数
+│       ├── __init__.py
+│       └── common.py       # 通用函数
+├── scripts/                 # 脚本目录
+│   ├── train.py            # 训练脚本
+│   └── predict.py          # 预测脚本
+└── tests/                  # 测试目录
+    ├── __init__.py
+    └── test_models.py      # 模型测试
 ```
 
-## 环境配置
+## 编码规范
 
-1. 创建并激活conda环境：
-```bash
-conda create -n sc2_env python=3.9
-conda activate sc2_env
+本项目遵循 Google Python Style Guide 和 PEP 8 规范。
+
+### 命名规范
+
+1. 文件名
+- 使用小写字母
+- 单词间用下划线连接
+- 例如: `model_config.py`, `data_loader.py`
+
+2. 类名
+- 使用驼峰命名法(CamelCase)
+- 每个单词首字母大写
+- 例如: `MutationScorer`, `DataLoader`
+
+3. 函数名
+- 使用小写字母
+- 单词间用下划线连接
+- 例如: `train_model()`, `process_data()`
+
+4. 变量名
+- 使用小写字母
+- 单词间用下划线连接
+- 例如: `batch_size`, `learning_rate`
+
+5. 常量名
+- 使用大写字母
+- 单词间用下划线连接
+- 例如: `MAX_EPOCHS`, `DEFAULT_BATCH_SIZE`
+
+### 代码格式
+
+1. 缩进
+- 使用4个空格进行缩进
+- 不使用制表符(Tab)
+
+2. 行长度
+- 最大行长度为80个字符
+- 超过时使用括号进行换行
+
+3. 导入顺序
+- 标准库导入
+- 相关第三方导入
+- 本地应用/库特定导入
+
+4. 空行
+- 顶级函数和类定义用两个空行分隔
+- 类中的方法定义用一个空行分隔
+
+5. 注释
+- 使用docstring记录模块、函数、类的文档
+- 注释应该是完整的句子
+- 行内注释在代码后使用两个空格分隔
+
+### 类型注解
+
+- 使用Python类型注解
+- 复杂类型使用typing模块
+- 例如:
+```python
+from typing import List, Dict, Optional
+
+def process_data(data: List[Dict]) -> Optional[np.ndarray]:
+    pass
 ```
 
-2. 安装依赖：
-```bash
-pip install -r requirements.txt
-```
+## 依赖管理
 
-## 数据说明
+项目使用requirements.txt管理依赖包。主要依赖包括:
 
-训练数据包含以下字段：
-- 序号：任务编号
-- 突变名称：任务名称
-- 地图：任务地图
-- 因子1-4：突变因子
-- 评级：难度评级（1-10）
+- pytorch>=1.9.0
+- numpy>=1.19.2
+- pandas>=1.3.0
+- scikit-learn>=0.24.2
+
+## 开发流程
+
+1. 创建新分支进行开发
+2. 编写单元测试
+3. 运行测试确保通过
+4. 提交代码前进行代码格式检查
+5. 创建Pull Request进行代码审查
 
 ## 模型架构
 
-模型包含以下主要组件：
-1. 图神经网络（GNN）：处理突变因子之间的关系
-2. 注意力机制：处理地图对突变难度的影响
-3. 多层感知机：综合特征进行最终预测
+详见 `docs/model_architecture.md`
 
-## 运行说明
+## 训练流程
 
-1. 训练模型：
-```bash
-python src/main.py
-```
+详见 `docs/training_pipeline.md`
 
-2. 评估模型：
-```bash
-python src/evaluate.py
-```
+## License
 
-3. 预测新数据：
-```bash
-python src/predict.py --input_file path/to/input.csv
-```
-
-## 可视化
-
-模型训练过程中会生成以下可视化：
-1. 训练损失和验证准确率曲线
-2. 模型结构图
-3. 注意力权重热力图
-
-可视化结果保存在 `visualizations/` 目录下。
-
-## 日志
-
-训练和评估日志保存在 `logs/` 目录下，包含：
-1. 训练过程日志
-2. 评估结果日志
-3. 预测输出日志 
+MIT License 

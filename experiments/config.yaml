@@ -1,0 +1,32 @@
+data:
+  batch_size: 32
+  max_mutations: 10
+  num_workers: 4
+  processed_dir: data/processed
+  raw_data_path: data/processed/sc2_mutations_duo.csv
+  use_weighted_sampler: true
+  val_ratio: 0.1
+experiment:
+  name: baseline
+  save_dir: experiments
+  seed: 42
+model:
+  ai_dim: 32
+  commander_dim: 128
+  dropout: 0.3
+  embed_dropout: 0.1
+  hidden_dims:
+  - 512
+  - 256
+  - 128
+  map_dim: 64
+  mutation_dim: 96
+training:
+  device: cuda
+  lr: 0.001
+  num_epochs: 100
+  scheduler:
+    factor: 0.5
+    min_lr: 1.0e-06
+    patience: 5
+  weight_decay: 0.0001

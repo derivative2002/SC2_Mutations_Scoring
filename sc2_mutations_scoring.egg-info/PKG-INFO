@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: sc2-mutations-scoring
+Version: 0.1.0
+Requires-Python: >=3.7
+Requires-Dist: torch>=1.8.0
+Requires-Dist: numpy>=1.19.0
+Requires-Dist: pandas>=1.2.0
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: tqdm>=4.50.0
+Requires-Dist: tensorboard>=2.4.0
+Requires-Dist: pyyaml>=5.4.0

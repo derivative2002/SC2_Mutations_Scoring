@@ -1,215 +1,333 @@
-import pandas as pd
+"""数据预处理模块."""
+
+import json
+import logging
+from collections import Counter
+from pathlib import Path
+from typing import Dict, List, Tuple, Set
+
 import numpy as np
-import torch
-from torch_geometric.data import Data
-from typing import Tuple, List, Dict, Set
+import pandas as pd
+from tqdm import tqdm
 
-def load_and_preprocess_data(data_path: str) -> Tuple[pd.DataFrame, Dict[str, int]]:
-    """
-    加载并预处理数据
-    """
-    # 读取数据
-    df = pd.read_csv(data_path)
-    
-    # 创建地图ID映射
-    unique_maps = df['地图'].unique()
-    map_to_id = {map_name: idx for idx, map_name in enumerate(unique_maps)}
-    
-    return df, map_to_id
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-def get_all_factors(df: pd.DataFrame) -> Set[str]:
-    """
-    获取所有唯一的突变因子
-    """
-    factors = set()
-    for col in ['因子1', '因子2', '因子3', '因子4']:
-        factors.update(df[col].dropna().unique())
-    return factors
 
-def create_factor_mapping(factors: Set[str]) -> Dict[str, int]:
-    """
-    创建因子到ID的映射
-    """
-    return {factor: idx for idx, factor in enumerate(sorted(factors))}
-
-def extract_factors(df: pd.DataFrame) -> np.ndarray:
-    """
-    提取突变因子特征
-    返回形状为 (n_samples, n_factors) 的one-hot编码矩阵
-    """
-    # 获取所有唯一因子
-    all_factors = get_all_factors(df)
-    factor_to_id = create_factor_mapping(all_factors)
-    n_factors = len(factor_to_id)
+class Vocab:
+    """词表类，用于特征转换."""
     
-    # 创建特征矩阵
-    features = np.zeros((len(df), n_factors))
-    
-    # 填充特征矩阵
-    for i, row in df.iterrows():
-        for col in ['因子1', '因子2', '因子3', '因子4']:
-            if pd.notna(row[col]):
-                factor_id = factor_to_id[row[col]]
-                features[i, factor_id] = 1
-    
-    return features
-
-def build_factor_relationships() -> torch.Tensor:
-    """
-    构建因子之间的关系图
-    返回边索引张量 (2, num_edges)
-    
-    因子分为五大类：
-    1. 敌方部队增益因子：增加敌方单位能力的因子
-    2. 环境因子：影响地图环境和地形的因子
-    3. 额外机制因子：改变游戏基本机制的因子
-    4. 视野限制因子：影响玩家视野的因子
-    5. 强力因子：对游戏难度有显著影响的因子
-    """
-    # 获取所有因子
-    df = pd.read_csv('data/raw/train.csv')
-    all_factors = get_all_factors(df)
-    factor_to_id = create_factor_mapping(all_factors)
-    
-    # 打印调试信息
-    print(f"\nFactor mapping:")
-    for factor, idx in factor_to_id.items():
-        print(f"{factor}: {idx}")
-    
-    # 定义因子关系
-    factor_relations = [
-        # 强力因子关系
-        ("风暴英雄", "虚空裂隙"),  # 两个强力因子的组合
-        ("风暴英雄", "复仇战士"),  # 与部队增益的关联
-        ("风暴英雄", "力量蜕变"),  # 与部队增益的关联
-        ("虚空裂隙", "时空立场"),  # 与环境的关联
-        ("虚空裂隙", "岩浆爆发"),  # 与环境的关联
+    def __init__(self, name: str, special_tokens: List[str] = None):
+        """初始化词表.
         
-        # 敌方部队增益因子关系
-        ("复仇战士", "力量蜕变"),
-        ("复仇战士", "鼓舞人心"),
-        ("力量蜕变", "鼓舞人心"),
-        ("坚强意志", "力量蜕变"),
-        ("坚强意志", "鼓舞人心"),
-        ("同化体", "异形寄生"),
-        ("同化体", "虚空重生者"),
-        ("异形寄生", "虚空重生者"),
+        Args:
+            name: 词表名称
+            special_tokens: 特殊token列表，例如[PAD]等
+        """
+        self.name = name
+        self.token2idx: Dict[str, int] = {}
+        self.idx2token: Dict[int, str] = {}
+        self.special_tokens = special_tokens or []
         
-        # 环境因子关系
-        ("暴风雪", "龙卷风暴"),
-        ("暴风雪", "岩浆爆发"),
-        ("龙卷风暴", "岩浆爆发"),
-        ("焦土政策", "岩浆爆发"),
-        ("核弹打击", "轨道轰炸"),
-        ("核弹打击", "飞弹大战"),
-        ("轨道轰炸", "飞弹大战"),
-        ("强磁雷场", "震荡攻击"),
-        
-        # 额外机制因子关系
-        ("时间扭曲", "速度狂魔"),
-        ("时间扭曲", "时空立场"),
-        ("速度狂魔", "来去无踪"),
-        ("闪避机动", "来去无踪"),
-        ("减伤屏障", "晶矿护盾"),
-        ("黑死病", "丧尸大战"),
-        ("黑死病", "行尸走肉"),
-        ("丧尸大战", "行尸走肉"),
-        ("极性不定", "相互摧毁"),
-        ("双重压力", "相互摧毁"),
-        ("生命汲取", "黑死病"),
-        
-        # 视野限制因子关系
-        ("暗无天日", "短视症"),
-        ("超远视距", "短视症"),
-        ("暗无天日", "超远视距"),
-        ("光子过载", "短视症"),
-        ("光子过载", "超远视距")
-    ]
+        # 添加特殊token
+        for token in self.special_tokens:
+            self.add_token(token)
     
-    # 创建边索引
-    edges = []
-    for f1, f2 in factor_relations:
-        if f1 in factor_to_id and f2 in factor_to_id:
-            # 添加双向边
-            edges.append([factor_to_id[f1], factor_to_id[f2]])
-            edges.append([factor_to_id[f2], factor_to_id[f1]])
+    def add_token(self, token: str) -> int:
+        """添加token到词表.
+        
+        Args:
+            token: 要添加的token
             
-            # 添加自环边
-            edges.append([factor_to_id[f1], factor_to_id[f1]])
-            edges.append([factor_to_id[f2], factor_to_id[f2]])
+        Returns:
+            token的索引
+        """
+        if token not in self.token2idx:
+            idx = len(self.token2idx)
+            self.token2idx[token] = idx
+            self.idx2token[idx] = token
+        return self.token2idx[token]
     
-    # 确保每个节点都有自环边
-    for factor_id in factor_to_id.values():
-        edges.append([factor_id, factor_id])
+    def __len__(self) -> int:
+        return len(self.token2idx)
     
-    # 去除重复边
-    edges = list(set(tuple(edge) for edge in edges))
-    edges = [list(edge) for edge in edges]
-    
-    # 打印调试信息
-    print(f"\nNumber of edges: {len(edges)}")
-    print(f"Edge index range: [{min(min(edge) for edge in edges)}, {max(max(edge) for edge in edges)}]")
-    
-    # 转换为PyTorch张量
-    edge_index = torch.tensor(edges, dtype=torch.long).t()
-    
-    return edge_index
-
-def create_graph_data(
-    factors: np.ndarray,
-    map_ids: np.ndarray,
-    edge_index: torch.Tensor,
-    labels: np.ndarray
-) -> List[Data]:
-    """
-    创建图数据对象列表
-    
-    Args:
-        factors: 因子特征矩阵 [n_samples, n_factors]
-        map_ids: 地图ID数组 [n_samples]
-        edge_index: 边索引张量 [2, n_edges]
-        labels: 标签数组 [n_samples]
-    
-    Returns:
-        data_list: 图数据对象列表
-    """
-    data_list = []
-    for i in range(len(factors)):
-        # 将特征向量转换为2D张量 [n_factors, 1]
-        x = torch.FloatTensor(factors[i]).unsqueeze(1)
+    def save(self, vocab_dir: str):
+        """保存词表到文件.
         
-        data = Data(
-            x=x,  # [n_factors, 1]
-            edge_index=edge_index,  # [2, n_edges]
-            map_id=torch.LongTensor([map_ids[i]]),  # [1]
-            y=torch.LongTensor([labels[i] - 1])  # [1] 评级从1开始，转换为从0开始
-        )
-        data_list.append(data)
+        Args:
+            vocab_dir: 词表保存目录
+        """
+        vocab_path = Path(vocab_dir) / f"{self.name}_vocab.json"
+        with open(vocab_path, 'w', encoding='utf-8') as f:
+            json.dump({
+                'token2idx': self.token2idx,
+                'special_tokens': self.special_tokens
+            }, f, ensure_ascii=False, indent=2)
+        logger.info(f"词表已保存到: {vocab_path}")
     
-    return data_list
+    @classmethod
+    def load(cls, vocab_dir: str, name: str) -> 'Vocab':
+        """从文件加载词表.
+        
+        Args:
+            vocab_dir: 词表目录
+            name: 词表名称
+            
+        Returns:
+            加载的词表对象
+        """
+        vocab_path = Path(vocab_dir) / f"{name}_vocab.json"
+        with open(vocab_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        vocab = cls(name, data['special_tokens'])
+        vocab.token2idx = data['token2idx']
+        vocab.idx2token = {int(k): v for k, v in 
+                          {v: k for k, v in vocab.token2idx.items()}.items()}
+        logger.info(f"已加载词表: {vocab_path}")
+        return vocab
 
-def prepare_data(data_path: str) -> Tuple[List[Data], Dict[str, int]]:
-    """
-    准备模型训练所需的所有数据
-    """
-    # 1. 加载和预处理数据
-    df, map_to_id = load_and_preprocess_data(data_path)
+
+class SC2MutationPreprocessor:
+    """星际2突变数据预处理器."""
     
-    # 2. 提取特征
-    factors = extract_factors(df)
-    map_ids = np.array([map_to_id[m] for m in df['地图']])
-    labels = df['评级'].values
+    def __init__(self, 
+                 raw_data_path: str,
+                 processed_dir: str,
+                 max_mutations: int = 10):
+        """初始化预处理器.
+        
+        Args:
+            raw_data_path: 原始数据文件路径
+            processed_dir: 处理后数据保存目录
+            max_mutations: 最大突变因子数量
+        """
+        self.raw_data_path = Path(raw_data_path)
+        self.processed_dir = Path(processed_dir)
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.max_mutations = max_mutations
+        
+        # 词表
+        self.map_vocab = Vocab('map')
+        self.commander_vocab = Vocab('commander')
+        self.mutation_vocab = Vocab(
+            'mutation', special_tokens=['[PAD]'])
+        self.ai_vocab = Vocab('ai')
+        
+        # 元数据
+        self.metadata = {
+            'max_mutations': max_mutations,
+            'num_classes': 5,
+            'class_weights': None
+        }
     
-    # 3. 构建因子关系图
-    edge_index = build_factor_relationships()
+    def _safe_eval(self, s):
+        """安全地解析字符串列表.
+        
+        Args:
+            s: 输入字符串
+            
+        Returns:
+            解析后的列表
+        """
+        if pd.isna(s):
+            return []
+        try:
+            # 清理字符串
+            s = s.strip()
+            if s.startswith('['):
+                s = s[1:-1]
+            # 分割并清理每个项
+            items = [item.strip().strip("'").strip('"') for item in s.split(',')]
+            return [item for item in items if item]
+        except:
+            logger.warning(f"解析失败: {s}")
+            return []
+
+    def _build_vocabs(self, df: pd.DataFrame):
+        """构建所有特征的词表.
+        
+        Args:
+            df: 原始数据DataFrame
+        """
+        logger.info("开始构建词表...")
+        
+        # 地图词表
+        for map_name in tqdm(df['map_name'].unique(), desc="构建地图词表"):
+            if pd.notna(map_name):
+                self.map_vocab.add_token(map_name)
+        
+        # 指挥官词表
+        commanders = set()
+        for cmd_pair in tqdm(df['commanders'], desc="构建指挥官词表"):
+            if pd.notna(cmd_pair):
+                cmds = self._safe_eval(cmd_pair)
+                commanders.update(cmds)
+        for cmd in commanders:
+            if cmd:  # 过滤空值
+                self.commander_vocab.add_token(cmd)
+        
+        # 突变因子词表
+        mutations = set()
+        for mutation_list in tqdm(df['mutation_factors'], desc="构建突变因子词表"):
+            if pd.notna(mutation_list):
+                factors = self._safe_eval(mutation_list)
+                mutations.update(factors)
+        for mutation in mutations:
+            if mutation:  # 过滤空值
+                self.mutation_vocab.add_token(mutation)
+        
+        # AI词表
+        for ai in tqdm(df['enemy_ai'].unique(), desc="构建AI词表"):
+            if pd.notna(ai):
+                self.ai_vocab.add_token(ai)
+        
+        logger.info(f"词表构建完成:")
+        logger.info(f"- 地图数量: {len(self.map_vocab)}")
+        logger.info(f"- 指挥官数量: {len(self.commander_vocab)}")
+        logger.info(f"- 突变因子数量: {len(self.mutation_vocab)}")
+        logger.info(f"- AI类型数量: {len(self.ai_vocab)}")
     
-    # 打印调试信息
-    print(f"Number of factors: {factors.shape[1]}")
-    print(f"Edge index shape: {edge_index.shape}")
-    print(f"Edge index max value: {edge_index.max().item()}")
-    print(f"Edge index min value: {edge_index.min().item()}")
+    def _convert_features(self, 
+                         df: pd.DataFrame) -> Tuple[Dict[str, np.ndarray], np.ndarray]:
+        """转换特征为模型输入格式.
+        
+        Args:
+            df: 原始数据DataFrame
+            
+        Returns:
+            特征字典和标签数组
+        """
+        logger.info("开始转换特征...")
+        num_samples = len(df)
+        
+        # 初始化特征数组
+        features = {
+            'map_ids': np.zeros(num_samples, dtype=np.int64),
+            'commander_ids': np.zeros((num_samples, 2), dtype=np.int64),
+            'mutation_ids': np.zeros(
+                (num_samples, self.max_mutations), dtype=np.int64),
+            'mutation_mask': np.zeros(
+                (num_samples, self.max_mutations), dtype=np.float32),
+            'ai_ids': np.zeros(num_samples, dtype=np.int64)
+        }
+        
+        # 获取[PAD]的索引
+        pad_idx = self.mutation_vocab.token2idx['[PAD]']
+        
+        # 转换特征
+        for idx, (_, row) in enumerate(tqdm(df.iterrows(), total=len(df), desc="转换特征")):
+            # 地图ID
+            if pd.notna(row['map_name']):
+                features['map_ids'][idx] = self.map_vocab.token2idx[row['map_name']]
+            
+            # 指挥官ID
+            if pd.notna(row['commanders']):
+                commanders = self._safe_eval(row['commanders'])
+                for j, cmd in enumerate(commanders[:2]):
+                    if cmd:
+                        features['commander_ids'][idx, j] = (
+                            self.commander_vocab.token2idx[cmd])
+            
+            # 突变因子ID和mask
+            if pd.notna(row['mutation_factors']):
+                mutations = self._safe_eval(row['mutation_factors'])
+                # 只取前max_mutations个突变因子
+                for j, mutation in enumerate(mutations[:self.max_mutations]):
+                    if mutation:
+                        features['mutation_ids'][idx, j] = (
+                            self.mutation_vocab.token2idx[mutation])
+                        features['mutation_mask'][idx, j] = 1.0
+                # 将剩余位置填充为[PAD]
+                features['mutation_ids'][idx, len(mutations):] = pad_idx
+            else:
+                # 如果没有突变因子，全部填充为[PAD]
+                features['mutation_ids'][idx, :] = pad_idx
+            
+            # AI ID
+            if pd.notna(row['enemy_ai']):
+                features['ai_ids'][idx] = self.ai_vocab.token2idx[row['enemy_ai']]
+        
+        # 转换标签
+        # 先将difficulty_score转换为数值类型
+        df['difficulty_score'] = pd.to_numeric(df['difficulty_score'], errors='coerce')
+        # 检查是否有无效值
+        invalid_scores = df['difficulty_score'].isna()
+        if invalid_scores.any():
+            logger.warning(f"发现{invalid_scores.sum()}个无效的难度分数")
+            # 使用众数填充无效值
+            mode_score = df['difficulty_score'].mode()[0]
+            df.loc[invalid_scores, 'difficulty_score'] = mode_score
+        
+        labels = df['difficulty_score'].values.astype(np.int64) - 1  # 转换为0-4
+        
+        # 计算类别权重
+        class_counts = Counter(labels)
+        total_samples = len(labels)
+        self.metadata['class_weights'] = [
+            total_samples / (len(class_counts) * count)
+            for count in [class_counts[i] for i in range(5)]
+        ]
+        
+        logger.info("特征转换完成")
+        return features, labels
     
-    # 4. 创建图数据对象
-    data_list = create_graph_data(factors, map_ids, edge_index, labels)
+    def process(self):
+        """处理数据并保存."""
+        # 读取原始数据
+        logger.info(f"读取原始数据: {self.raw_data_path}")
+        df = pd.read_csv(
+            self.raw_data_path,
+            encoding='utf-8',
+            quotechar="'",  # 使用单引号作为引用字符
+            doublequote=True,  # 处理双引号
+            on_bad_lines='warn'  # 遇到错误行时发出警告而不是报错
+        )
+        
+        # 构建词表
+        self._build_vocabs(df)
+        
+        # 转换特征
+        features, labels = self._convert_features(df)
+        
+        # 保存处理后的数据
+        processed_path = self.processed_dir / "processed_data.npz"
+        np.savez(processed_path, labels=labels, **features)
+        logger.info(f"处理后的数据已保存到: {processed_path}")
+        
+        # 保存词表
+        vocab_dir = self.processed_dir / "vocabs"
+        vocab_dir.mkdir(exist_ok=True)
+        self.map_vocab.save(vocab_dir)
+        self.commander_vocab.save(vocab_dir)
+        self.mutation_vocab.save(vocab_dir)
+        self.ai_vocab.save(vocab_dir)
+        
+        # 保存元数据
+        metadata_path = self.processed_dir / "metadata.json"
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(self.metadata, f, ensure_ascii=False, indent=2)
+        logger.info(f"元数据已保存到: {metadata_path}")
+
+
+def main():
+    """主函数."""
+    # 设置路径
+    raw_data_path = "data/raw/sc2_mutations_duo.csv"
+    processed_dir = "data/processed"
     
-    return data_list, map_to_id 
+    # 创建预处理器并处理数据
+    preprocessor = SC2MutationPreprocessor(
+        raw_data_path=raw_data_path,
+        processed_dir=processed_dir
+    )
+    preprocessor.process()
+
+
+if __name__ == "__main__":
+    main() 
