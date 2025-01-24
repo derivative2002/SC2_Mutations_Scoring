@@ -17,13 +17,33 @@ from src.training.trainer import Trainer
 from src.utils.config import Config
 from src.utils.metrics import analyze_class_distribution, FocalLoss
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
+def setup_logging(log_dir: Path):
+    """配置日志输出到文件和控制台."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"train_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    
+    # 创建格式化器
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # 创建文件处理器
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    
+    # 创建控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+    
+    # 配置根日志记录器
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
+    
+    return log_file
 
 def parse_args(args=None):
     """解析命令行参数."""
@@ -46,6 +66,12 @@ def main(args=None):
     
     # 加载配置
     config = Config.from_yaml(args.config)
+    
+    # 设置日志
+    log_dir = Path(config.experiment.save_dir) / config.experiment.name / 'logs'
+    log_file = setup_logging(log_dir)
+    logger = logging.getLogger(__name__)
+    logger.info(f"日志文件保存在: {log_file}")
     logger.info(f"加载配置: {args.config}")
     
     # 设置设备

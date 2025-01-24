@@ -88,7 +88,7 @@ def main():
     experiment_dir.mkdir(parents=True, exist_ok=True)
     
     # 保存配置
-    config.save(experiment_dir / 'config.yaml')
+    config.to_yaml(experiment_dir / 'config.yaml')
     
     # 数据预处理
     if not args.skip_preprocess:
