@@ -5,6 +5,7 @@ import logging
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Tuple, Set
+import csv
 
 import numpy as np
 import pandas as pd
@@ -31,7 +32,13 @@ class Vocab:
         self.name = name
         self.token2idx: Dict[str, int] = {}
         self.idx2token: Dict[int, str] = {}
-        self.special_tokens = special_tokens or []
+        
+        # 确保special_tokens中包含[UNK]
+        if special_tokens is None:
+            special_tokens = []
+        if '[UNK]' not in special_tokens:
+            special_tokens = ['[UNK]'] + special_tokens
+        self.special_tokens = special_tokens
         
         # 添加特殊token
         for token in self.special_tokens:
@@ -217,14 +224,19 @@ class SC2MutationPreprocessor:
             'ai_ids': np.zeros(num_samples, dtype=np.int64)
         }
         
-        # 获取[PAD]的索引
+        # 获取[PAD]和[UNK]的索引
         pad_idx = self.mutation_vocab.token2idx['[PAD]']
+        unk_map_idx = self.map_vocab.token2idx.get('[UNK]', 0)
+        unk_commander_idx = self.commander_vocab.token2idx.get('[UNK]', 0)
+        unk_mutation_idx = self.mutation_vocab.token2idx.get('[UNK]', pad_idx)
+        unk_ai_idx = self.ai_vocab.token2idx.get('[UNK]', 0)
         
         # 转换特征
         for idx, (_, row) in enumerate(tqdm(df.iterrows(), total=len(df), desc="转换特征")):
             # 地图ID
             if pd.notna(row['map_name']):
-                features['map_ids'][idx] = self.map_vocab.token2idx[row['map_name']]
+                features['map_ids'][idx] = self.map_vocab.token2idx.get(
+                    row['map_name'], unk_map_idx)
             
             # 指挥官ID
             if pd.notna(row['commanders']):
@@ -232,7 +244,7 @@ class SC2MutationPreprocessor:
                 for j, cmd in enumerate(commanders[:2]):
                     if cmd:
                         features['commander_ids'][idx, j] = (
-                            self.commander_vocab.token2idx[cmd])
+                            self.commander_vocab.token2idx.get(cmd, unk_commander_idx))
             
             # 突变因子ID和mask
             if pd.notna(row['mutation_factors']):
@@ -241,7 +253,7 @@ class SC2MutationPreprocessor:
                 for j, mutation in enumerate(mutations[:self.max_mutations]):
                     if mutation:
                         features['mutation_ids'][idx, j] = (
-                            self.mutation_vocab.token2idx[mutation])
+                            self.mutation_vocab.token2idx.get(mutation, unk_mutation_idx))
                         features['mutation_mask'][idx, j] = 1.0
                 # 将剩余位置填充为[PAD]
                 features['mutation_ids'][idx, len(mutations):] = pad_idx
@@ -251,7 +263,8 @@ class SC2MutationPreprocessor:
             
             # AI ID
             if pd.notna(row['enemy_ai']):
-                features['ai_ids'][idx] = self.ai_vocab.token2idx[row['enemy_ai']]
+                features['ai_ids'][idx] = self.ai_vocab.token2idx.get(
+                    row['enemy_ai'], unk_ai_idx)
         
         # 转换标签
         # 先将difficulty_score转换为数值类型
@@ -284,9 +297,9 @@ class SC2MutationPreprocessor:
         df = pd.read_csv(
             self.raw_data_path,
             encoding='utf-8',
-            quotechar="'",  # 使用单引号作为引用字符
-            doublequote=True,  # 处理双引号
-            on_bad_lines='warn'  # 遇到错误行时发出警告而不是报错
+            quoting=csv.QUOTE_ALL,  # 使用引号包围所有字段
+            escapechar='\\',  # 使用反斜杠作为转义字符
+            on_bad_lines='skip'  # 跳过错误行
         )
         
         # 构建词表
@@ -318,7 +331,7 @@ class SC2MutationPreprocessor:
 def main():
     """主函数."""
     # 设置路径
-    raw_data_path = "data/raw/sc2_mutations_duo.csv"
+    raw_data_path = "data/processed/sc2_mutations_duo.csv"  # 使用已修复的数据文件
     processed_dir = "data/processed"
     
     # 创建预处理器并处理数据

@@ -21,6 +21,14 @@ wheels/
 .installed.cfg
 *.egg
 
+# Virtual Environment
+venv/
+ENV/
+env/
+.env/
+.venv/
+sc2_env/
+
 # IDE
 .idea/
 .vscode/
@@ -49,4 +57,13 @@ ENV/
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Keep
+!data/processed/.gitkeep
+!experiments/.gitkeep
+
+# Additional project-specific files
+*.pt
+*.pth
+*.npz 
