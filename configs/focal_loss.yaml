@@ -1,9 +1,8 @@
 # 数据配置
 data:
-  raw_data_path: data/processed/sc2_mutations_duo.csv
   processed_dir: data/processed
   max_mutations: 8  # 双指挥官模式，每个指挥官最多4个突变
-  val_ratio: 0.1
+  val_ratio: 0.15  # 验证集比例，高玩测试数据会优先用作验证集
   batch_size: 32
   num_workers: 4
   use_weighted_sampler: true
@@ -19,6 +18,12 @@ model:
   hidden_dims: [128, 64, 32]
   dropout: 0.5
   embed_dropout: 0.3
+  # 正则化配置
+  l1_lambda: 1e-5
+  l2_lambda: 1e-4
+  # 先验知识配置
+  strong_commanders: ["泰凯斯", "泽拉图", "诺娃"]  # 强力指挥官列表
+  commander_strength_factor: 0.2  # 强力指挥官的影响因子
 
 # 训练配置
 training:
@@ -30,11 +35,14 @@ training:
     factor: 0.7
     patience: 8
     min_lr: 1.0e-6
+  # focal loss参数
+  focal_alpha: 0.25
+  focal_gamma: 2.0
   # 设备
   device: cuda
 
 # 实验配置
 experiment:
-  name: focal_loss_v2  # 使用focal loss处理类别不平衡的第二个版本
+  name: focal_loss_v6_新数据集_高玩验证  # 使用新数据集，高玩数据优先作为验证集
   save_dir: experiments
   seed: 42 

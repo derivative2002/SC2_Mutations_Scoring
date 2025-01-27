@@ -32,7 +32,7 @@ class SC2MutationDataset(Dataset):
         Args:
             data_dir: 数据目录
             split: 数据集划分，可选 'train', 'val', 'test'
-            val_ratio: 验证集比例
+            val_ratio: 验证集比例（当verified数据不足时使用）
         """
         self.data_dir = Path(data_dir)
         self.split = split
@@ -53,18 +53,43 @@ class SC2MutationDataset(Dataset):
         self.mutation_vocab = Vocab.load(vocab_dir, 'mutation')
         self.ai_vocab = Vocab.load(vocab_dir, 'ai')
         
-        # 划分数据集
+        # 获取验证数据的索引
         num_samples = len(data['labels'])
-        indices = np.arange(num_samples)
-        np.random.shuffle(indices)
+        verified_indices = np.where(data['is_verified'] == 1)[0]
+        unverified_indices = np.where(data['is_verified'] == 0)[0]
         
-        val_size = int(num_samples * val_ratio)
-        if split == 'train':
-            self.indices = indices[val_size:]
-        elif split == 'val':
-            self.indices = indices[:val_size]
+        # 打乱索引
+        np.random.shuffle(verified_indices)
+        np.random.shuffle(unverified_indices)
+        
+        # 计算需要的验证集大小
+        target_val_size = int(num_samples * val_ratio)
+        
+        if split == 'val':
+            # 如果verified数据足够，全部用作验证集
+            if len(verified_indices) >= target_val_size:
+                self.indices = verified_indices[:target_val_size]
+            else:
+                # 如果verified数据不足，补充使用unverified数据
+                additional_needed = target_val_size - len(verified_indices)
+                self.indices = np.concatenate([
+                    verified_indices,
+                    unverified_indices[:additional_needed]
+                ])
+        elif split == 'train':
+            # 训练集使用剩余的数据
+            if len(verified_indices) >= target_val_size:
+                val_indices = set(verified_indices[:target_val_size])
+            else:
+                val_indices = set(np.concatenate([
+                    verified_indices,
+                    unverified_indices[:target_val_size - len(verified_indices)]
+                ]))
+            # 训练集使用所有不在验证集中的数据
+            self.indices = np.array([i for i in range(num_samples) if i not in val_indices])
+            np.random.shuffle(self.indices)
         else:  # test
-            self.indices = indices
+            self.indices = np.arange(num_samples)
         
         # 保存特征和标签
         self.features = {

@@ -43,10 +43,20 @@ class ModelConfig:
     dropout: float = 0.2
     embed_dropout: float = 0.1
     
+    # 正则化配置
+    l1_lambda: float = 1e-5
+    l2_lambda: float = 1e-4
+    
+    # 先验知识配置
+    strong_commanders: List[str] = None
+    commander_strength_factor: float = 0.2
+    
     def __post_init__(self):
         """初始化后处理."""
         if self.hidden_dims is None:
             self.hidden_dims = [512, 256, 128]
+        if self.strong_commanders is None:
+            self.strong_commanders = []
 
 
 @dataclass
@@ -75,12 +85,18 @@ class TrainingConfig:
     device: str = 'cuda'
     scheduler: Optional[SchedulerConfig] = None
     
+    # focal loss参数
+    focal_alpha: float = 0.25
+    focal_gamma: float = 2.0
+    
     def __post_init__(self):
         """初始化后处理."""
         # 确保数值类型正确
         self.num_epochs = int(self.num_epochs)
         self.lr = float(self.lr)
         self.weight_decay = float(self.weight_decay)
+        self.focal_alpha = float(self.focal_alpha)
+        self.focal_gamma = float(self.focal_gamma)
         
         # 处理scheduler配置
         if isinstance(self.scheduler, dict):

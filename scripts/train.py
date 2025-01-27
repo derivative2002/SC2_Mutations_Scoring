@@ -15,7 +15,9 @@ from src.data.dataset import get_dataloaders
 from src.models.networks import MutationScorer
 from src.training.trainer import Trainer
 from src.utils.config import Config
-from src.utils.metrics import analyze_class_distribution, FocalLoss
+from src.utils.metrics import analyze_class_distribution
+from src.training.losses import FocalLossWithRegularization
+from src.utils.visualization import visualize_model
 
 def setup_logging(log_dir: Path):
     """配置日志输出到文件和控制台."""
@@ -98,6 +100,16 @@ def main(args=None):
     vocab_sizes = train_loader.dataset.vocab_sizes
     logger.info(f"词表大小: {vocab_sizes}")
     
+    # 分析训练集和验证集的类别分布
+    train_labels = train_loader.dataset.labels
+    val_labels = val_loader.dataset.labels
+    
+    logger.info("\n训练集分布:")
+    train_dist, train_weights = analyze_class_distribution(train_labels)
+    
+    logger.info("\n验证集分布:")
+    val_dist, val_weights = analyze_class_distribution(val_labels)
+    
     # 分析类别分布
     all_labels = []
     for batch in train_loader:
@@ -121,8 +133,20 @@ def main(args=None):
     model = model.to(device)
     logger.info(f"模型参数量: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
     
-    # 使用focal loss
-    criterion = FocalLoss(alpha=class_weights.to(device), gamma=2.0)
+    # 生成模型结构图
+    model_dir = Path(config.experiment.save_dir) / config.experiment.name
+    visualize_model(model, str(model_dir))
+    
+    # 创建损失函数
+    criterion = FocalLossWithRegularization(
+        alpha=config.training.focal_alpha,
+        gamma=config.training.focal_gamma,
+        l1_lambda=config.model.l1_lambda,
+        l2_lambda=config.model.l2_lambda,
+        strong_commanders=config.model.strong_commanders,
+        commander_strength_factor=config.model.commander_strength_factor,
+        commander_vocab=train_loader.dataset.commander_vocab
+    ).to(device)
     
     # 创建优化器和学习率调度器
     optimizer = optim.Adam(

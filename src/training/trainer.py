@@ -102,7 +102,12 @@ class Trainer:
             )
             
             # 计算损失
-            loss = self.criterion(logits, batch['labels'])
+            loss = self.criterion(
+                logits, 
+                batch['labels'],
+                commander_ids=batch['commander_ids'],
+                model=self.model
+            )
             
             # 反向传播
             self.optimizer.zero_grad()
@@ -179,7 +184,12 @@ class Trainer:
             )
             
             # 计算损失
-            loss = self.criterion(logits, batch['labels'])
+            loss = self.criterion(
+                logits, 
+                batch['labels'],
+                commander_ids=batch['commander_ids'],
+                model=self.model
+            )
             
             # 计算准确率
             preds = torch.argmax(logits, dim=1)

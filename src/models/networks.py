@@ -15,7 +15,7 @@ class MLP(nn.Module):
                  input_dim: int,
                  hidden_dims: List[int],
                  output_dim: int,
-                 dropout: float = 0.2,
+                 dropout: float = 0.3,
                  use_batch_norm: bool = True):
         """Initialize MLP.
         
@@ -67,14 +67,14 @@ class MutationScorer(nn.Module):
                  num_commanders: int,
                  num_mutations: int,
                  num_ais: int,
-                 map_dim: int = 64,
-                 commander_dim: int = 128,
-                 mutation_dim: int = 96,
-                 ai_dim: int = 32,
-                 hidden_dims: List[int] = (512, 256, 128),
+                 map_dim: int = 32,
+                 commander_dim: int = 48,
+                 mutation_dim: int = 48,
+                 ai_dim: int = 16,
+                 hidden_dims: List[int] = (64, 32),
                  num_classes: int = 5,
-                 dropout: float = 0.2,
-                 embed_dropout: float = 0.1,
+                 dropout: float = 0.3,
+                 embed_dropout: float = 0.2,
                  use_batch_norm: bool = True):
         """Initialize mutation scorer.
         

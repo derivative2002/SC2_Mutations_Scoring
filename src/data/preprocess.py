@@ -103,17 +103,16 @@ class SC2MutationPreprocessor:
     """星际2突变数据预处理器."""
     
     def __init__(self, 
-                 raw_data_path: str,
                  processed_dir: str,
-                 max_mutations: int = 10):
+                 max_mutations: int = 10,
+                 raw_data_path: str = None):  # 保持参数兼容性
         """初始化预处理器.
         
         Args:
-            raw_data_path: 原始数据文件路径
             processed_dir: 处理后数据保存目录
             max_mutations: 最大突变因子数量
+            raw_data_path: 原始数据文件路径（可选，用于兼容旧代码）
         """
-        self.raw_data_path = Path(raw_data_path)
         self.processed_dir = Path(processed_dir)
         self.processed_dir.mkdir(parents=True, exist_ok=True)
         
@@ -137,7 +136,7 @@ class SC2MutationPreprocessor:
         """安全地解析字符串列表.
         
         Args:
-            s: 输入字符串
+            s: 输入字符串，格式如 "'item1', 'item2', 'item3'"
             
         Returns:
             解析后的列表
@@ -145,12 +144,9 @@ class SC2MutationPreprocessor:
         if pd.isna(s):
             return []
         try:
-            # 清理字符串
-            s = s.strip()
-            if s.startswith('['):
-                s = s[1:-1]
-            # 分割并清理每个项
+            # 清理字符串并分割
             items = [item.strip().strip("'").strip('"') for item in s.split(',')]
+            # 过滤空值
             return [item for item in items if item]
         except:
             logger.warning(f"解析失败: {s}")
@@ -221,7 +217,8 @@ class SC2MutationPreprocessor:
                 (num_samples, self.max_mutations), dtype=np.int64),
             'mutation_mask': np.zeros(
                 (num_samples, self.max_mutations), dtype=np.float32),
-            'ai_ids': np.zeros(num_samples, dtype=np.int64)
+            'ai_ids': np.zeros(num_samples, dtype=np.int64),
+            'is_verified': np.zeros(num_samples, dtype=np.int64)
         }
         
         # 获取[PAD]和[UNK]的索引
@@ -265,6 +262,9 @@ class SC2MutationPreprocessor:
             if pd.notna(row['enemy_ai']):
                 features['ai_ids'][idx] = self.ai_vocab.token2idx.get(
                     row['enemy_ai'], unk_ai_idx)
+            
+            # 是否验证
+            features['is_verified'][idx] = 1 if pd.notna(row['is_verified']) and row['is_verified'] == 1 else 0
         
         # 转换标签
         # 先将difficulty_score转换为数值类型
@@ -331,15 +331,61 @@ class SC2MutationPreprocessor:
 def main():
     """主函数."""
     # 设置路径
-    raw_data_path = "data/processed/sc2_mutations_duo.csv"  # 使用已修复的数据文件
+    raw_data_paths = [
+        "data/raw/【实验数据】mutation_tasks_初版生成数据.csv",  # 生成数据
+        "data/raw/【实验数据】高玩实际测试的高质量数据_评测集.csv"  # 高玩测试数据
+    ]
     processed_dir = "data/processed"
+    
+    # 读取并合并数据
+    dfs = []
+    for path in raw_data_paths:
+        logger.info(f"读取数据文件: {path}")
+        df = pd.read_csv(
+            path,
+            encoding='utf-8',
+            quoting=csv.QUOTE_ALL,  # 使用引号包围所有字段
+            escapechar='\\',  # 使用反斜杠作为转义字符
+            on_bad_lines='skip'  # 跳过错误行
+        )
+        # 确保高玩测试数据的is_verified为1
+        if "高玩实际测试" in path:
+            df['is_verified'] = 1
+        dfs.append(df)
+    
+    # 合并数据
+    merged_df = pd.concat(dfs, ignore_index=True)
+    logger.info(f"合并后的数据集大小: {len(merged_df)}")
     
     # 创建预处理器并处理数据
     preprocessor = SC2MutationPreprocessor(
-        raw_data_path=raw_data_path,
         processed_dir=processed_dir
     )
-    preprocessor.process()
+    
+    # 构建词表
+    preprocessor._build_vocabs(merged_df)
+    
+    # 转换特征
+    features, labels = preprocessor._convert_features(merged_df)
+    
+    # 保存处理后的数据
+    processed_path = Path(processed_dir) / "processed_data.npz"
+    np.savez(processed_path, labels=labels, **features)
+    logger.info(f"处理后的数据已保存到: {processed_path}")
+    
+    # 保存词表
+    vocab_dir = Path(processed_dir) / "vocabs"
+    vocab_dir.mkdir(exist_ok=True)
+    preprocessor.map_vocab.save(vocab_dir)
+    preprocessor.commander_vocab.save(vocab_dir)
+    preprocessor.mutation_vocab.save(vocab_dir)
+    preprocessor.ai_vocab.save(vocab_dir)
+    
+    # 保存元数据
+    metadata_path = Path(processed_dir) / "metadata.json"
+    with open(metadata_path, 'w', encoding='utf-8') as f:
+        json.dump(preprocessor.metadata, f, ensure_ascii=False, indent=2)
+    logger.info(f"元数据已保存到: {metadata_path}")
 
 
 if __name__ == "__main__":

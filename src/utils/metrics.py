@@ -95,4 +95,16 @@ def analyze_class_distribution(labels: np.ndarray) -> Tuple[dict, np.ndarray]:
     class_weights = class_weights / class_weights.sum() * len(unique_labels)
     class_weights = torch.FloatTensor(class_weights)
     
-    return class_dist, class_weights 
+    return class_dist, class_weights
+
+
+def print_class_distribution(dataset) -> None:
+    """打印数据集的类别分布.
+    
+    Args:
+        dataset: 数据集对象
+    """
+    labels = dataset.labels[dataset.indices]
+    logger.info("\n类别分布:")
+    class_dist, _ = analyze_class_distribution(labels)
+    return class_dist 
