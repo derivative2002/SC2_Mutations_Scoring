@@ -120,7 +120,7 @@ def main():
     save_dir.mkdir(parents=True, exist_ok=True)
     model_structure_path = save_dir / 'model_structure.txt'
 
-    summary_str, model_stats = get_model_summary(model)
+    summary_str, _ = get_model_summary(model)
     with open(model_structure_path, 'w', encoding='utf-8') as f:
         f.write(summary_str)
     logger.info(f"模型结构信息已保存到: {model_structure_path}")
