@@ -1,0 +1,23 @@
+# 模型注册表
+models:
+  baseline:
+    checkpoint_path: "baseline/best_model.pt"
+    config_path: "baseline.yaml"
+    description: "基础MLP模型"
+    features:
+      map_dim: 64
+      commander_dim: 128
+      mutation_dim: 64
+      ai_dim: 64
+      hidden_dims: [256, 128, 64]
+  
+  focal_loss_v7:
+    checkpoint_path: "focal_loss_v7/checkpoint.pt"
+    config_path: "focal_loss.yaml"
+    description: "使用Focal Loss优化的模型"
+    features:
+      map_dim: 64
+      commander_dim: 128
+      mutation_dim: 64
+      ai_dim: 64
+      hidden_dims: [256, 128, 64] 
