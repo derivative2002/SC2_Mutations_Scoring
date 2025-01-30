@@ -1,0 +1,48 @@
+# 数据配置
+data:
+  processed_dir: data/processed  # 更新为训练数据目录
+  max_mutations: 8  # 双指挥官模式，每个指挥官最多4个突变
+  val_ratio: 0.15  # 验证集比例，高玩测试数据会优先用作验证集
+  batch_size: 32
+  num_workers: 4
+  use_weighted_sampler: true
+
+# 模型配置
+model:
+  # 嵌入维度
+  map_dim: 64      # 增加地图嵌入维度
+  commander_dim: 96 # 增加指挥官嵌入维度
+  mutation_dim: 96  # 增加突变因子嵌入维度
+  ai_dim: 64       # 增加AI嵌入维度
+  # MLP配置
+  hidden_dims: [256, 128, 64]  # 增加网络容量
+  dropout: 0.4     # 略微增加dropout
+  embed_dropout: 0.3
+  # 正则化配置
+  l1_lambda: 0.00005  # 增加L1正则化
+  l2_lambda: 0.001    # 增加L2正则化
+  # 先验知识配置
+  strong_commanders: ["泰凯斯", "泽拉图", "诺娃"]  # 强力指挥官列表
+  commander_strength_factor: 0.3  # 增加强力指挥官的影响因子
+
+# 训练配置
+training:
+  num_epochs: 150  # 增加训练轮数
+  lr: 0.001       # 增大初始学习率
+  weight_decay: 0.001  # 增加权重衰减
+  # 学习率调度器
+  scheduler:
+    factor: 0.8    # 更温和的学习率衰减
+    patience: 5    # 减少等待轮数，更快响应
+    min_lr: 0.000005 # 略微提高最小学习率
+  # focal loss参数
+  focal_alpha: 0.5   # 更平衡的类别权重
+  focal_gamma: 1.5   # 降低对难样本的惩罚强度
+  # 设备
+  device: cpu
+
+# 实验配置
+experiment:
+  name: focal_loss_v7  # 实验名称
+  save_dir: experiments/focal_loss  # 保存在experiments目录下
+  seed: 42 

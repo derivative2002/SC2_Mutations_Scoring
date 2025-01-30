@@ -10,12 +10,12 @@ import torch.optim as optim
 import yaml
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from src.data.dataset import get_dataloaders
-from src.models.networks import MutationScorer
-from src.training.losses import FocalLossWithRegularization
-from src.training.trainer import Trainer
-from src.utils.metrics import print_class_distribution
-from src.utils.visualization import get_model_summary
+from scoring.src.data.dataset import get_dataloaders
+from scoring.src.models.networks import MutationScorer
+from scoring.src.training.losses import FocalLossWithRegularization
+from scoring.src.training.trainer import Trainer
+from scoring.src.utils.metrics import print_class_distribution
+from scoring.src.utils.visualization import get_model_summary
 
 # 配置日志
 def setup_logging(save_dir: Path, experiment_name: str):
@@ -26,7 +26,7 @@ def setup_logging(save_dir: Path, experiment_name: str):
         experiment_name: 实验名称
     """
     # 创建实验目录
-    log_dir = save_dir / experiment_name
+    log_dir = save_dir / 'logs'
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / 'train.log'
     
@@ -58,7 +58,7 @@ def main():
     """主函数."""
     # 解析命令行参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='configs/focal_loss.yaml',
+    parser.add_argument('--config', type=str, default='configs/training/focal_loss.yaml',
                        help='配置文件路径')
     args = parser.parse_args()
     
@@ -116,9 +116,9 @@ def main():
     logger.info(f"模型参数量: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
     
     # 获取并保存模型结构信息
-    save_dir = Path(config['experiment']['save_dir']) / config['experiment']['name']
-    save_dir.mkdir(parents=True, exist_ok=True)
-    model_structure_path = save_dir / 'model_structure.txt'
+    save_dir = Path(config['experiment']['save_dir'])
+    model_structure_path = save_dir / 'results/model_structure.txt'
+    model_structure_path.parent.mkdir(parents=True, exist_ok=True)
 
     summary_str, _ = get_model_summary(model)
     with open(model_structure_path, 'w', encoding='utf-8') as f:
@@ -162,8 +162,8 @@ def main():
         criterion=criterion,
         num_epochs=config['training']['num_epochs'],
         device=device,
-        save_dir=config['experiment']['save_dir'],
-        experiment_name=config['experiment']['name']
+        save_dir=save_dir / 'checkpoints',
+        experiment_name=experiment_name
     )
     
     # 训练模型

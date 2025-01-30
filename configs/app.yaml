@@ -1,0 +1,19 @@
+app:
+  name: "SC2 Mutations Randomizer"
+  version: "0.1.0"
+  description: "星际争霸2合作任务突变组合生成器"
+  debug: true
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  reload: true
+
+model:
+  vocab_dir: "resources/model/vocab"
+  weights_path: "resources/model/weights/model.pt"
+  network:
+    embed_dim: 64
+    hidden_dim: 128
+    num_layers: 2
+    dropout: 0.1 

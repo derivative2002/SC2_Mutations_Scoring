@@ -1,0 +1,45 @@
+# 数据配置
+data:
+  processed_dir: data/processed
+  max_mutations: 8
+  val_ratio: 0.2
+  batch_size: 32
+  num_workers: 4
+  use_weighted_sampler: false
+
+# 模型配置
+model:
+  # 嵌入维度
+  map_dim: 32
+  commander_dim: 64
+  mutation_dim: 64
+  ai_dim: 32
+  # MLP配置
+  hidden_dims: [128, 64, 32]
+  dropout: 0.2
+  embed_dropout: 0.1
+  # 正则化配置
+  l1_lambda: 0.0001
+  l2_lambda: 0.001
+  # 先验知识配置
+  strong_commanders: []
+  commander_strength_factor: 0.0
+
+# 训练配置
+training:
+  num_epochs: 100
+  lr: 0.001
+  weight_decay: 0.0001
+  # 学习率调度器
+  scheduler:
+    factor: 0.5
+    patience: 10
+    min_lr: 0.00001
+  # 设备
+  device: cpu
+
+# 实验配置
+experiment:
+  name: baseline
+  save_dir: experiments/baseline
+  seed: 42 

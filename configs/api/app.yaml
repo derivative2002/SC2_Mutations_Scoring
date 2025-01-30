@@ -1,0 +1,16 @@
+app:
+  name: "SC2 Mutations Randomizer"
+  version: "0.1.0"
+  description: "星际争霸2合作任务突变组合生成器"
+  debug: false
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  reload: false
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/app.log" 

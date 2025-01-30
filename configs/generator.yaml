@@ -1,0 +1,21 @@
+mode:
+  solo:
+    max_mutations: 4
+    min_mutations: 2
+    difficulty_range: [1.0, 5.0]
+    tolerance: 0.5
+  duo:
+    max_mutations: 8
+    min_mutations: 4
+    difficulty_range: [1.0, 5.0]
+    tolerance: 0.5
+
+optimization:
+  max_iterations: 10
+  sample_size: 5
+  temperature: 1.0
+
+rules:
+  incompatible_weight: -1.0  # 互斥规则权重
+  required_weight: 1.0       # 依赖规则权重
+  balance_weight: 0.5        # 平衡性权重 

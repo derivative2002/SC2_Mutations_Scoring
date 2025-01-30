@@ -1,0 +1,17 @@
+model:
+  vocab_dir: "resources/model/vocab"
+  weights_path: "resources/model/weights/model.pt"
+  network:
+    embed_dim: 64
+    hidden_dim: 128
+    num_layers: 2
+    dropout: 0.1
+  
+  cache:
+    size: 1000
+    ttl: 3600  # 缓存过期时间(秒)
+    
+  prediction:
+    batch_size: 32
+    num_workers: 4
+    device: "cpu"  # 或 "cuda" 

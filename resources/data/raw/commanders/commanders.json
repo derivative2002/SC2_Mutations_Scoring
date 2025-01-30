@@ -1,0 +1,146 @@
+[
+  {
+    "name": "雷诺",
+    "id": "raynor",
+    "race": "terran",
+    "description": "擅长生物单位和空中支援。",
+    "image": "resources/images/commanders/雷诺.png",
+    "difficulty": 2
+  },
+  {
+    "name": "凯瑞甘",
+    "id": "kerrigan",
+    "race": "zerg",
+    "description": "强大的英雄单位和快速扩张能力。",
+    "image": "resources/images/commanders/凯瑞甘.png",
+    "difficulty": 3
+  },
+  {
+    "name": "阿塔尼斯",
+    "id": "artanis",
+    "race": "protoss",
+    "description": "强大的部队和传送能力。",
+    "image": "resources/images/commanders/阿塔尼斯.png",
+    "difficulty": 2
+  },
+  {
+    "name": "斯旺",
+    "id": "swann",
+    "race": "terran",
+    "description": "机械单位专家。",
+    "image": "resources/images/commanders/斯旺.png",
+    "difficulty": 3
+  },
+  {
+    "name": "扎加拉",
+    "id": "zagara",
+    "race": "zerg",
+    "description": "快速生产和压制。",
+    "image": "resources/images/commanders/扎加拉.png",
+    "difficulty": 2
+  },
+  {
+    "name": "沃拉尊",
+    "id": "vorazun",
+    "race": "protoss",
+    "description": "隐形单位和时间停止。",
+    "image": "resources/images/commanders/沃拉尊.png",
+    "difficulty": 3
+  },
+  {
+    "name": "凯拉克斯",
+    "id": "karax",
+    "race": "protoss",
+    "description": "防御塔和机械部队。",
+    "image": "resources/images/commanders/凯拉克斯.png",
+    "difficulty": 3
+  },
+  {
+    "name": "阿巴瑟",
+    "id": "abathur",
+    "race": "zerg",
+    "description": "生物进化和强化。",
+    "image": "resources/images/commanders/阿巴瑟.png",
+    "difficulty": 4
+  },
+  {
+    "name": "阿拉纳克",
+    "id": "alarak",
+    "race": "protoss",
+    "description": "强大的英雄单位。",
+    "image": "resources/images/commanders/阿拉纳克.png",
+    "difficulty": 3
+  },
+  {
+    "name": "诺娃",
+    "id": "nova",
+    "race": "terran",
+    "description": "特工和精英部队。",
+    "image": "resources/images/commanders/诺娃.png",
+    "difficulty": 4
+  },
+  {
+    "name": "斯托科夫",
+    "id": "stukov",
+    "race": "zerg",
+    "description": "感染部队。",
+    "image": "resources/images/commanders/斯托科夫.png",
+    "difficulty": 3
+  },
+  {
+    "name": "菲尼克斯",
+    "id": "fenix",
+    "race": "protoss",
+    "description": "英雄战士。",
+    "image": "resources/images/commanders/菲尼克斯.png",
+    "difficulty": 3
+  },
+  {
+    "name": "德哈卡",
+    "id": "dehaka",
+    "race": "zerg",
+    "description": "进化和适应。",
+    "image": "resources/images/commanders/德哈卡.png",
+    "difficulty": 3
+  },
+  {
+    "name": "霍纳与汉",
+    "id": "horner",
+    "race": "terran",
+    "description": "空中部队和雇佣兵。",
+    "image": "resources/images/commanders/霍纳与汉.png",
+    "difficulty": 3
+  },
+  {
+    "name": "泰凯斯",
+    "id": "tychus",
+    "race": "terran",
+    "description": "精英佣兵小队。",
+    "image": "resources/images/commanders/泰凯斯.png",
+    "difficulty": 2
+  },
+  {
+    "name": "泽拉图",
+    "id": "zeratul",
+    "race": "protoss",
+    "description": "神器收集者。",
+    "image": "resources/images/commanders/泽拉图.png",
+    "difficulty": 3
+  },
+  {
+    "name": "斯台特曼",
+    "id": "stetmann",
+    "race": "terran",
+    "description": "机械和灵能场。",
+    "image": "resources/images/commanders/斯台特曼.png",
+    "difficulty": 4
+  },
+  {
+    "name": "蒙斯克",
+    "id": "mengsk",
+    "race": "terran",
+    "description": "帝国部队。",
+    "image": "resources/images/commanders/蒙斯克.png",
+    "difficulty": 3
+  }
+] 

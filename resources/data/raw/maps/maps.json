@@ -1,0 +1,107 @@
+[
+  {
+    "name": "亡者之夜",
+    "id": "dead_of_night",
+    "description": "在夜晚保护基地，白天清理感染建筑。",
+    "image": "resources/images/maps/亡者之夜.png",
+    "difficulty": 3
+  },
+  {
+    "name": "克哈裂痕",
+    "id": "korhal_rift",
+    "description": "保护城市免受虚空入侵。",
+    "image": "resources/images/maps/克哈裂痕.png",
+    "difficulty": 4
+  },
+  {
+    "name": "净网行动",
+    "id": "malwarfare",
+    "description": "清除网络中的恶意程序。",
+    "image": "resources/images/maps/净网行动.png",
+    "difficulty": 3
+  },
+  {
+    "name": "升格之链",
+    "id": "chain_of_ascension",
+    "description": "击败挑战者，保护高阶领主。",
+    "image": "resources/images/maps/升格之链.png",
+    "difficulty": 3
+  },
+  {
+    "name": "天界封锁",
+    "id": "sky_shield",
+    "description": "保护轨道平台免受攻击。",
+    "image": "resources/images/maps/天界封锁.png",
+    "difficulty": 4
+  },
+  {
+    "name": "往日神庙",
+    "id": "temple_of_the_past",
+    "description": "保护古代神器免遭摧毁。",
+    "image": "resources/images/maps/往日神庙.png",
+    "difficulty": 3
+  },
+  {
+    "name": "机会渺茫",
+    "id": "slim_chance",
+    "description": "在有限时间内完成任务。",
+    "image": "resources/images/maps/机会渺茫.png",
+    "difficulty": 4
+  },
+  {
+    "name": "死亡摇篮",
+    "id": "cradle_of_death",
+    "description": "护送运载车摧毁敌方基地。",
+    "image": "resources/images/maps/死亡摇篮.png",
+    "difficulty": 4
+  },
+  {
+    "name": "湮灭快车",
+    "id": "oblivion_express",
+    "description": "阻止运输列车通过。",
+    "image": "resources/images/maps/湮灭快车.png",
+    "difficulty": 3
+  },
+  {
+    "name": "熔火危机",
+    "id": "miner_evacuation",
+    "description": "在熔岩中营救矿工。",
+    "image": "resources/images/maps/熔火危机.png",
+    "difficulty": 3
+  },
+  {
+    "name": "聚铁成兵",
+    "id": "scrap_metal",
+    "description": "收集资源并建立防御。",
+    "image": "resources/images/maps/聚铁成兵.png",
+    "difficulty": 3
+  },
+  {
+    "name": "营救矿工",
+    "id": "miner_rescue",
+    "description": "营救被困的矿工。",
+    "image": "resources/images/maps/营救矿工.png",
+    "difficulty": 3
+  },
+  {
+    "name": "虚空撕裂",
+    "id": "void_rift",
+    "description": "阻止虚空裂隙扩散。",
+    "image": "resources/images/maps/虚空撕裂.png",
+    "difficulty": 4
+  },
+  {
+    "name": "虚空降临",
+    "id": "void_launch",
+    "description": "保护并发射虚空水晶塔。",
+    "image": "resources/images/maps/虚空降临.png",
+    "difficulty": 3
+  },
+  {
+    "name": "黑暗杀星",
+    "id": "dark_star",
+    "description": "摧毁敌方超级武器。",
+    "image": "resources/images/maps/黑暗杀星.png",
+    "difficulty": 4
+  }
+] 

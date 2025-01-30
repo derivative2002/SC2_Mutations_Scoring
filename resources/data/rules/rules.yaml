@@ -1,0 +1,21 @@
+incompatible_pairs:
+  - mutation1: "虚空裂隙"
+    mutation2: "暗无天日"
+    reason: "视野影响叠加，会导致游戏体验极差"
+    example: "虚空裂隙已经限制视野，暗无天日会进一步降低视野，使游戏难度过高"
+    
+  - mutation1: "生命吸取"
+    mutation2: "默哀"
+    reason: "治疗效果相互抵消"
+    example: "生命吸取提供治疗，而默哀禁止治疗，两者冲突"
+
+required_pairs:
+  - prerequisite: "丧尸大战"
+    dependent: "行尸走肉"
+    reason: "机制相互配合"
+    example: "丧尸大战产生感染单位，行尸走肉让感染单位更具威胁"
+    
+  - prerequisite: "强磁雷场"
+    dependent: "闪避机动"
+    reason: "增加战术深度"
+    example: "强磁雷场影响移动，闪避机动提供规避能力，需要更多战术考虑" 

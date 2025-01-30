@@ -1,6 +1,6 @@
 # 数据配置
 data:
-  processed_dir: data/processed
+  processed_dir: resources/data/processed  # 更新数据目录路径
   max_mutations: 8  # 双指挥官模式，每个指挥官最多4个突变
   val_ratio: 0.15  # 验证集比例，高玩测试数据会优先用作验证集
   batch_size: 32
@@ -39,7 +39,7 @@ training:
   focal_alpha: 0.5   # 更平衡的类别权重
   focal_gamma: 1.5   # 降低对难样本的惩罚强度
   # 设备
-  device: cuda
+  device: cpu
 
 # 实验配置
 experiment:

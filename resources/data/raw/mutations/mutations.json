@@ -1,0 +1,404 @@
+[
+  {
+    "name": "上班偷睡",
+    "id": "sleepy_worker",
+    "description": "工人单位会随机进入睡眠状态。",
+    "image": "resources/images/mutations/上班偷睡.png"
+  },
+  {
+    "name": "不死邪魔",
+    "id": "undying_evil",
+    "description": "敌方单位死亡后会复活。",
+    "image": "resources/images/mutations/不死邪魔.png"
+  },
+  {
+    "name": "不给糖果就捣蛋",
+    "id": "trick_or_treat",
+    "description": "随机获得奖励或惩罚。",
+    "image": "resources/images/mutations/不给糖果就捣蛋.png"
+  },
+  {
+    "name": "丧尸大战",
+    "id": "walking_infested",
+    "description": "被击杀的单位会变成敌对感染体。",
+    "image": "resources/images/mutations/丧尸大战.png"
+  },
+  {
+    "name": "伤害散射",
+    "id": "damage_reflection",
+    "description": "单位受到伤害时会反弹部分伤害。",
+    "image": "resources/images/mutations/伤害散射.png"
+  },
+  {
+    "name": "光子过载",
+    "id": "photon_overload",
+    "description": "神族单位死亡时会产生能量爆炸。",
+    "image": "resources/images/mutations/光子过载.png"
+  },
+  {
+    "name": "净化光束",
+    "id": "purifier_beam",
+    "description": "定期发射净化光束攻击玩家单位。",
+    "image": "resources/images/mutations/净化光束.png"
+  },
+  {
+    "name": "减伤屏障",
+    "id": "barrier",
+    "description": "单位获得减伤护盾。",
+    "image": "resources/images/mutations/减伤屏障.png"
+  },
+  {
+    "name": "刺头兵",
+    "id": "aggressive_deployment",
+    "description": "敌方单位更具攻击性。",
+    "image": "resources/images/mutations/刺头兵.png"
+  },
+  {
+    "name": "力量蜕变",
+    "id": "power_overwhelming",
+    "description": "敌方单位获得额外属性。",
+    "image": "resources/images/mutations/力量蜕变.png"
+  },
+  {
+    "name": "双重压力",
+    "id": "double_trouble",
+    "description": "敌方单位会分裂成两个。",
+    "image": "resources/images/mutations/双重压力.png"
+  },
+  {
+    "name": "同化体",
+    "id": "assimilator",
+    "description": "敌方单位可以吸收其他单位的能力。",
+    "image": "resources/images/mutations/同化体.png"
+  },
+  {
+    "name": "坚强意志",
+    "id": "strong_will",
+    "description": "敌方单位免疫控制效果。",
+    "image": "resources/images/mutations/坚强意志.png"
+  },
+  {
+    "name": "复仇战士",
+    "id": "avenger",
+    "description": "敌方单位死亡时会强化周围单位。",
+    "image": "resources/images/mutations/复仇战士.png"
+  },
+  {
+    "name": "小捞油水",
+    "id": "mineral_shields",
+    "description": "矿物可以提供护盾。",
+    "image": "resources/images/mutations/小捞油水.png"
+  },
+  {
+    "name": "岩浆爆发",
+    "id": "lava_burst",
+    "description": "地面会定期喷发岩浆。",
+    "image": "resources/images/mutations/岩浆爆发.png"
+  },
+  {
+    "name": "幸运红包",
+    "id": "lucky_envelopes",
+    "description": "随机获得资源奖励。",
+    "image": "resources/images/mutations/幸运红包.png"
+  },
+  {
+    "name": "异形寄生",
+    "id": "alien_incubation",
+    "description": "被击杀的单位会生成异虫。",
+    "image": "resources/images/mutations/异形寄生.png"
+  },
+  {
+    "name": "强磁雷场",
+    "id": "magnetic_field",
+    "description": "地图上随机出现电磁力场，影响单位移动。",
+    "image": "resources/images/mutations/强磁雷场.png"
+  },
+  {
+    "name": "强行征用",
+    "id": "forced_recruitment",
+    "description": "敌方可以控制你的单位。",
+    "image": "resources/images/mutations/强行征用.png"
+  },
+  {
+    "name": "暗无天日",
+    "id": "darkness",
+    "description": "大幅降低单位视野范围。",
+    "image": "resources/images/mutations/暗无天日.png"
+  },
+  {
+    "name": "生命吸取",
+    "id": "life_leech",
+    "description": "单位可以吸取其他单位的生命值。",
+    "image": "resources/images/mutations/生命吸取.png"
+  },
+  {
+    "name": "虚空裂隙",
+    "id": "void_rifts",
+    "description": "地图上随机出现虚空裂隙，限制视野范围。",
+    "image": "resources/images/mutations/虚空裂隙.png"
+  },
+  {
+    "name": "行尸走肉",
+    "id": "walking_dead",
+    "description": "感染体会自动复活并追击最近的目标。",
+    "image": "resources/images/mutations/行尸走肉.png"
+  },
+  {
+    "name": "闪避机动",
+    "id": "evasive_maneuvers",
+    "description": "单位有几率闪避攻击。",
+    "image": "resources/images/mutations/闪避机动.png"
+  },
+  {
+    "name": "默哀",
+    "id": "moment_of_silence",
+    "description": "禁止所有治疗效果。",
+    "image": "resources/images/mutations/默哀.png"
+  },
+  {
+    "name": "轨道轰炸",
+    "id": "orbital_strike",
+    "description": "定期从轨道发射攻击。",
+    "image": "resources/images/mutations/轨道轰炸.png"
+  },
+  {
+    "name": "激光钻机",
+    "id": "laser_drill",
+    "description": "定期发射激光攻击。",
+    "image": "resources/images/mutations/激光钻机.png"
+  },
+  {
+    "name": "震荡攻击",
+    "id": "shock_attack",
+    "description": "单位攻击会造成震荡效果。",
+    "image": "resources/images/mutations/震荡攻击.png"
+  },
+  {
+    "name": "黑死病",
+    "id": "black_death",
+    "description": "单位会感染并传播瘟疫。",
+    "image": "resources/images/mutations/黑死病.png"
+  },
+  {
+    "name": "进攻部署",
+    "id": "offensive_deployment",
+    "description": "敌方单位获得进攻增益。",
+    "image": "resources/images/mutations/进攻部署.png"
+  },
+  {
+    "name": "无边恐惧",
+    "id": "endless_fear",
+    "description": "单位会陷入恐惧状态。",
+    "image": "resources/images/mutations/无边恐惧.png"
+  },
+  {
+    "name": "惧怕黑暗",
+    "id": "fear_of_darkness",
+    "description": "黑暗中的单位会受到恐惧效果。",
+    "image": "resources/images/mutations/惧怕黑暗.png"
+  },
+  {
+    "name": "消极战斗",
+    "id": "negative_combat",
+    "description": "单位战斗能力降低。",
+    "image": "resources/images/mutations/消极战斗.png"
+  },
+  {
+    "name": "焦土政策",
+    "id": "scorched_earth",
+    "description": "地面会持续造成伤害。",
+    "image": "resources/images/mutations/焦土政策.png"
+  },
+  {
+    "name": "焰火秀",
+    "id": "fireworks",
+    "description": "单位死亡时会产生爆炸效果。",
+    "image": "resources/images/mutations/焰火秀.png"
+  },
+  {
+    "name": "时间扭曲",
+    "id": "time_warp",
+    "description": "时间流逝速度不稳定。",
+    "image": "resources/images/mutations/时间扭曲.png"
+  },
+  {
+    "name": "极性不定",
+    "id": "polarity",
+    "description": "单位属性会随机变化。",
+    "image": "resources/images/mutations/极性不定.png"
+  },
+  {
+    "name": "核弹打击",
+    "id": "nuclear_strike",
+    "description": "定期发射核弹攻击。",
+    "image": "resources/images/mutations/核弹打击.png"
+  },
+  {
+    "name": "来去无踪",
+    "id": "now_you_see_me",
+    "description": "单位可以瞬间移动。",
+    "image": "resources/images/mutations/来去无踪.png"
+  },
+  {
+    "name": "迷失方向",
+    "id": "lost_direction",
+    "description": "单位移动方向随机改变。",
+    "image": "resources/images/mutations/迷失方向.png"
+  },
+  {
+    "name": "暴风雪",
+    "id": "blizzard",
+    "description": "地图被暴风雪覆盖。",
+    "image": "resources/images/mutations/暴风雪.png"
+  },
+  {
+    "name": "超远视距",
+    "id": "long_range_vision",
+    "description": "单位视野范围大幅提升。",
+    "image": "resources/images/mutations/超远视距.png"
+  },
+  {
+    "name": "相互摧毁",
+    "id": "mutual_destruction",
+    "description": "单位死亡时会对周围造成伤害。",
+    "image": "resources/images/mutations/相互摧毁.png"
+  },
+  {
+    "name": "风暴英雄",
+    "id": "storm_hero",
+    "description": "英雄单位获得额外能力。",
+    "image": "resources/images/mutations/风暴英雄.png"
+  },
+  {
+    "name": "混乱工作室",
+    "id": "chaos_studio",
+    "description": "随机触发各种混乱效果。",
+    "image": "resources/images/mutations/混乱工作室.png"
+  },
+  {
+    "name": "速度狂魔",
+    "id": "speed_demon",
+    "description": "单位移动和攻击速度大幅提升。",
+    "image": "resources/images/mutations/速度狂魔.png"
+  },
+  {
+    "name": "自毁程序",
+    "id": "self_destruction",
+    "description": "单位有几率自爆。",
+    "image": "resources/images/mutations/自毁程序.png"
+  },
+  {
+    "name": "短视症",
+    "id": "short_sighted",
+    "description": "单位视野范围减少。",
+    "image": "resources/images/mutations/短视症.png"
+  },
+  {
+    "name": "致命勾引",
+    "id": "fatal_attraction",
+    "description": "单位会被敌方吸引。",
+    "image": "resources/images/mutations/致命勾引.png"
+  },
+  {
+    "name": "灵能爆表",
+    "id": "psionic_overload",
+    "description": "灵能单位造成额外伤害。",
+    "image": "resources/images/mutations/灵能爆表.png"
+  },
+  {
+    "name": "石像狂热者",
+    "id": "statue_maniac",
+    "description": "单位可能被石化。",
+    "image": "resources/images/mutations/石像狂热者.png"
+  },
+  {
+    "name": "补给共享",
+    "id": "supply_share",
+    "description": "补给限制共享。",
+    "image": "resources/images/mutations/补给共享.png"
+  },
+  {
+    "name": "拿钱说话",
+    "id": "money_talks",
+    "description": "资源影响单位能力。",
+    "image": "resources/images/mutations/拿钱说话.png"
+  },
+  {
+    "name": "杀生业报",
+    "id": "karmic_justice",
+    "description": "造成伤害的单位也会受到伤害。",
+    "image": "resources/images/mutations/杀生业报.png"
+  },
+  {
+    "name": "晶矿护盾",
+    "id": "mineral_shield",
+    "description": "晶矿产生保护护盾。",
+    "image": "resources/images/mutations/晶矿护盾.png"
+  },
+  {
+    "name": "礼尚往来",
+    "id": "gift_exchange",
+    "description": "单位可以交换能力。",
+    "image": "resources/images/mutations/礼尚往来.png"
+  },
+  {
+    "name": "极度谨慎",
+    "id": "extreme_caution",
+    "description": "单位移动速度降低但防御提升。",
+    "image": "resources/images/mutations/极度谨慎.png"
+  },
+  {
+    "name": "给我死吧！",
+    "id": "just_die",
+    "description": "所有单位伤害提高。",
+    "image": "resources/images/mutations/给我死吧！.png"
+  },
+  {
+    "name": "虚空重生者",
+    "id": "void_reanimator",
+    "description": "死亡单位以虚空形态重生。",
+    "image": "resources/images/mutations/虚空重生者.png"
+  },
+  {
+    "name": "飞弹大战",
+    "id": "missile_war",
+    "description": "单位发射额外导弹。",
+    "image": "resources/images/mutations/飞弹大战.png"
+  },
+  {
+    "name": "时空力场",
+    "id": "time_field",
+    "description": "随机区域时间流速改变。",
+    "image": "resources/images/mutations/时空力场.png"
+  },
+  {
+    "name": "捕杀火鸡",
+    "id": "turkey_hunt",
+    "description": "随机单位变成火鸡。",
+    "image": "resources/images/mutations/捕杀火鸡.png"
+  },
+  {
+    "name": "炸弹机器人",
+    "id": "bomb_bot",
+    "description": "机械单位自爆造成伤害。",
+    "image": "resources/images/mutations/炸弹机器人.png"
+  },
+  {
+    "name": "鼓舞人心",
+    "id": "inspiring",
+    "description": "单位能力随士气提升。",
+    "image": "resources/images/mutations/鼓舞人心.png"
+  },
+  {
+    "name": "龙卷风暴",
+    "id": "tornado_storm",
+    "description": "随机产生龙卷风。",
+    "image": "resources/images/mutations/龙卷风暴.png"
+  },
+  {
+    "name": "杀戮机器人",
+    "id": "killer_robot",
+    "description": "敌方出现强大的机器人单位。",
+    "image": "resources/images/mutations/杀戮机器人.png"
+  }
+] 

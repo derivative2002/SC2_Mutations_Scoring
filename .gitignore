@@ -21,6 +21,13 @@ wheels/
 .installed.cfg
 *.egg
 
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
 # Virtual Environment
 venv/
 ENV/
@@ -66,4 +73,37 @@ Thumbs.db
 # Additional project-specific files
 *.pt
 *.pth
-*.npz 
+*.npz
+
+# 虚拟环境
+.env
+.venv
+venv/
+ENV/
+
+# 构建输出
+dist/
+build/
+
+# 资源软链接
+resources/images
+resources/models
+
+# 缓存
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# Randomizer specific
+randomizer/node_modules/
+randomizer/dist/
+randomizer/build/
+randomizer/.cache/
+randomizer/resources/images
+randomizer/resources/models
+randomizer/src/frontend/.vite/
+randomizer/electron/dist/
+
+# Keep directories
+!randomizer/resources/.gitkeep
+!randomizer/src/frontend/assets/.gitkeep 
