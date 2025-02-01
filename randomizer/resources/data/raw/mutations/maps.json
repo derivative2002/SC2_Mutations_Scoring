@@ -1,0 +1,26 @@
+[
+    {
+        "name": "虚空启航",
+        "id": "void_launch",
+        "description": "在虚空中发射航天器",
+        "image": "resources/images/maps/void_launch.png"
+    },
+    {
+        "name": "虚空降临",
+        "id": "void_thrashing",
+        "description": "阻止虚空生物入侵",
+        "image": "resources/images/maps/void_thrashing.png"
+    },
+    {
+        "name": "锁链末日",
+        "id": "chain_of_ascension",
+        "description": "击败虚空领主",
+        "image": "resources/images/maps/chain_of_ascension.png"
+    },
+    {
+        "name": "虚空通道",
+        "id": "void_rift",
+        "description": "关闭虚空裂隙",
+        "image": "resources/images/maps/void_rift.png"
+    }
+] 

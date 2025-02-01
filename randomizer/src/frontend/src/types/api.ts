@@ -2,6 +2,21 @@
  * API类型定义
  */
 
+export interface MapInfo {
+  name: string;
+  description?: string;
+}
+
+export interface CommanderInfo {
+  name: string;
+  description?: string;
+}
+
+export interface MutationInfo {
+  name: string;
+  description?: string;
+}
+
 export interface ScoreRequest {
   map_name: string;
   commanders: string[];
@@ -33,6 +48,26 @@ export interface RequiredPairRule {
 export interface RulesResponse {
   incompatible_pairs: MutationRule[];
   required_pairs: RequiredPairRule[];
+  generation_rules: {
+    mutation_count: {
+      min: number;
+      max: number;
+      description: string;
+    };
+    fixed_mutations: Array<{
+      name: string;
+      description: string;
+    }>;
+    excluded_mutations: Array<{
+      name: string;
+      description: string;
+    }>;
+    weighted_mutations: Array<{
+      name: string;
+      weight: number;
+      description: string;
+    }>;
+  };
 }
 
 export interface MutationCombination {
@@ -41,4 +76,22 @@ export interface MutationCombination {
   mutations: string[];
   difficulty: number;
   rules: string[];
+  ai_type: string;
+}
+
+export interface GenerationRules {
+  mutation_count: {
+    min: number;
+    max: number;
+    description: string;
+  };
+  fixed_mutations: Array<{
+    name: string;
+    description: string;
+  }>;
+  weighted_mutations: Array<{
+    name: string;
+    weight: number;
+    description: string;
+  }>;
 } 

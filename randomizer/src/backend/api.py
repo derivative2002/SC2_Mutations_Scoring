@@ -1,8 +1,7 @@
 """API路由模块."""
 
 from typing import List, Dict, Any
-
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, validator
 
 from .models.scorer import get_scorer
@@ -11,6 +10,31 @@ from .exceptions import ModelError, ConfigError
 from .logger import logger
 
 router = APIRouter()
+
+class MapInfo(BaseModel):
+    """地图信息."""
+    name: str = Field(..., description="地图名称")
+    id: str = Field(..., description="地图ID")
+    description: str = Field(..., description="地图描述")
+    image: str = Field(..., description="地图图片路径")
+
+
+class CommanderInfo(BaseModel):
+    """指挥官信息."""
+    name: str = Field(..., description="指挥官名称")
+    id: str = Field(..., description="指挥官ID")
+    race: str = Field(..., description="种族")
+    description: str = Field(..., description="指挥官描述")
+    image: str = Field(..., description="指挥官图片路径")
+    difficulty: int = Field(None, description="难度等级")
+
+
+class MutationInfo(BaseModel):
+    """突变因子信息."""
+    name: str = Field(..., description="突变因子名称")
+    id: str = Field(..., description="突变因子ID")
+    description: str = Field(..., description="突变因子描述")
+    image: str = Field(..., description="突变因子图片路径")
 
 
 class ScoreRequest(BaseModel):
@@ -41,7 +65,7 @@ class ScoreRequest(BaseModel):
     )
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "map_name": "虚空降临",
                 "commanders": ["雷诺", "凯瑞甘"],
@@ -54,7 +78,7 @@ class ScoreRequest(BaseModel):
     def validate_commanders(cls, v):
         """验证指挥官列表."""
         config = Config()
-        valid_commanders = set(config.get_commanders())
+        valid_commanders = set(c["name"] for c in config.get_commanders())
         invalid_commanders = [c for c in v if c not in valid_commanders]
         if invalid_commanders:
             raise ValueError(f"未知的指挥官: {', '.join(invalid_commanders)}")
@@ -64,7 +88,7 @@ class ScoreRequest(BaseModel):
     def validate_map(cls, v):
         """验证地图名称."""
         config = Config()
-        valid_maps = set(config.get_maps())
+        valid_maps = set(m["name"] for m in config.get_maps())
         if v not in valid_maps:
             raise ValueError(f"未知的地图: {v}")
         return v
@@ -73,18 +97,10 @@ class ScoreRequest(BaseModel):
     def validate_mutations(cls, v):
         """验证突变因子列表."""
         config = Config()
-        valid_mutations = set(config.get_mutations())
+        valid_mutations = set(m["name"] for m in config.get_mutations())
         invalid_mutations = [m for m in v if m not in valid_mutations]
         if invalid_mutations:
             raise ValueError(f"未知的突变因子: {', '.join(invalid_mutations)}")
-        
-        # 检查互斥规则
-        incompatible_pairs = config.get_incompatible_pairs()
-        for m1 in v:
-            for m2 in v:
-                if m1 < m2 and (m1, m2) in incompatible_pairs:
-                    reason = config.get_rule_description(m1, m2)
-                    raise ValueError(f"突变因子 {m1} 和 {m2} 不能同时使用: {reason}")
         return v
 
 
@@ -107,45 +123,10 @@ class ScoreResponse(BaseModel):
         }
     )
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "score": 3.5,
-                "details": {
-                    "rules": ["互斥规则：视野影响叠加，会导致游戏体验极差"],
-                    "num_mutations": 2,
-                    "commander_count": 2
-                }
-            }
-        }
 
-
-@router.post(
-    "/mutations/score",
-    response_model=ScoreResponse,
-    summary="评分突变组合",
-    description="""
-    评估指定的突变组合难度。
-    
-    - 支持1-2个指挥官
-    - 支持1-8个突变因子
-    - 自动检查突变因子的互斥和依赖规则
-    - 返回1-5的难度分数和详细信息
-    """,
-    response_description="难度分数和详细信息"
-)
+@router.post("/mutations/score", response_model=ScoreResponse)
 async def score_mutations(request: ScoreRequest) -> ScoreResponse:
-    """评分突变组合的难度.
-    
-    Args:
-        request: 评分请求
-        
-    Returns:
-        难度分数和详细信息
-        
-    Raises:
-        HTTPException: 如果评分过程出错
-    """
+    """评分突变组合的难度."""
     try:
         scorer = get_scorer()
         score = scorer.predict(
@@ -154,6 +135,9 @@ async def score_mutations(request: ScoreRequest) -> ScoreResponse:
             mutations=request.mutations,
             ai_type=request.ai_type
         )
+        
+        # 确保分数是整数
+        score = round(score)
         
         # 获取规则说明
         config = Config()
@@ -206,25 +190,13 @@ async def score_mutations(request: ScoreRequest) -> ScoreResponse:
         )
 
 
-@router.get(
-    "/mutations/maps",
-    response_model=List[Dict[str, Any]],
-    summary="获取地图列表",
-    description="获取所有可用的地图列表",
-    response_description="地图名称列表"
-)
-async def get_maps() -> List[Dict[str, Any]]:
+@router.get("/mutations/maps", response_model=List[MapInfo])
+async def get_maps() -> List[MapInfo]:
     """获取可用地图列表."""
     try:
         config = Config()
         maps = config.get_maps()
-        return [
-            {
-                "name": map_name,
-                **config.get_map_details(map_name)
-            }
-            for map_name in maps
-        ]
+        return [MapInfo(**m) for m in maps]
     except ConfigError as e:
         logger.error(f"获取地图列表失败: {str(e)}")
         raise HTTPException(
@@ -233,25 +205,13 @@ async def get_maps() -> List[Dict[str, Any]]:
         )
 
 
-@router.get(
-    "/mutations/commanders",
-    response_model=List[Dict[str, Any]],
-    summary="获取指挥官列表",
-    description="获取所有可用的指挥官列表",
-    response_description="指挥官名称列表"
-)
-async def get_commanders() -> List[Dict[str, Any]]:
+@router.get("/mutations/commanders", response_model=List[CommanderInfo])
+async def get_commanders() -> List[CommanderInfo]:
     """获取可用指挥官列表."""
     try:
         config = Config()
         commanders = config.get_commanders()
-        return [
-            {
-                "name": commander_name,
-                **config.get_commander_details(commander_name)
-            }
-            for commander_name in commanders
-        ]
+        return [CommanderInfo(**c) for c in commanders]
     except ConfigError as e:
         logger.error(f"获取指挥官列表失败: {str(e)}")
         raise HTTPException(
@@ -260,25 +220,13 @@ async def get_commanders() -> List[Dict[str, Any]]:
         )
 
 
-@router.get(
-    "/mutations/mutations",
-    response_model=List[Dict[str, Any]],
-    summary="获取突变因子列表",
-    description="获取所有可用的突变因子列表",
-    response_description="突变因子名称列表"
-)
-async def get_mutations() -> List[Dict[str, Any]]:
+@router.get("/mutations/mutations", response_model=List[MutationInfo])
+async def get_mutations() -> List[MutationInfo]:
     """获取可用突变因子列表."""
     try:
         config = Config()
         mutations = config.get_mutations()
-        return [
-            {
-                "name": mutation_name,
-                **config.get_mutation_details(mutation_name)
-            }
-            for mutation_name in mutations
-        ]
+        return [MutationInfo(**m) for m in mutations]
     except ConfigError as e:
         logger.error(f"获取突变因子列表失败: {str(e)}")
         raise HTTPException(
@@ -287,19 +235,8 @@ async def get_mutations() -> List[Dict[str, Any]]:
         )
 
 
-@router.get(
-    "/mutations/rules",
-    response_model=Dict[str, List[Dict[str, str]]],
-    summary="获取突变规则",
-    description="""
-    获取突变因子的组合规则，包括：
-    
-    - 互斥规则：不能同时使用的突变因子组合
-    - 依赖规则：需要搭配使用的突变因子组合
-    """,
-    response_description="突变规则列表"
-)
-async def get_rules() -> Dict[str, List[Dict[str, str]]]:
+@router.get("/mutations/rules", response_model=Dict[str, Any])
+async def get_rules() -> Dict[str, Any]:
     """获取突变规则."""
     try:
         config = Config()
@@ -319,7 +256,8 @@ async def get_rules() -> Dict[str, List[Dict[str, str]]]:
                     "description": config.get_rule_description(m1, m2)
                 }
                 for m1, m2 in config.get_required_pairs()
-            ]
+            ],
+            "generation_rules": config.get_generation_rules()
         }
     except ConfigError as e:
         logger.error(f"获取规则失败: {str(e)}")

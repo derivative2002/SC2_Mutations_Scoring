@@ -37,6 +37,17 @@ class GenerationRequest(BaseModel):
         description="难度容忍度（可选，0.0-1.0）"
     )
     
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "target_difficulty": 3.0,
+                "map_name": "虚空降临",
+                "commanders": ["雷诺"],
+                "mode": "solo",
+                "tolerance": 0.5
+            }
+        }
+    
     @validator('commanders')
     def validate_commanders(cls, v, values):
         """验证指挥官数量."""
@@ -78,6 +89,17 @@ class GenerationResponse(BaseModel):
         description="相关规则说明"
     )
 
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "map_name": "虚空降临",
+                "commanders": ["雷诺"],
+                "mutations": ["丧尸大战", "行尸走肉"],
+                "difficulty": 3.5,
+                "rules": ["互斥规则：视野影响叠加，会导致游戏体验极差"]
+            }
+        }
+
 
 class ErrorResponse(BaseModel):
     """错误响应."""
@@ -95,4 +117,15 @@ class ErrorResponse(BaseModel):
     details: Optional[dict] = Field(
         None,
         description="错误详情"
-    ) 
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "code": "VALIDATION_ERROR",
+                "message": "输入验证失败",
+                "details": {
+                    "error": "指定的地图不存在"
+                }
+            }
+        } 

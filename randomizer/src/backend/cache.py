@@ -67,10 +67,16 @@ class CacheMiddleware(BaseHTTPMiddleware):
             # 检查是否过期
             if datetime.now() < cached["expires"]:
                 logger.debug(f"使用缓存: {cache_key}")
-                return Response(
+                response = Response(
                     content=cached["content"],
-                    media_type="application/json"
+                    media_type="application/json",
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "*",
+                        "Access-Control-Allow-Headers": "*"
+                    }
                 )
+                return response
             else:
                 # 删除过期缓存
                 del self.cache[cache_key]
@@ -91,7 +97,12 @@ class CacheMiddleware(BaseHTTPMiddleware):
             
             return Response(
                 content=content,
-                media_type="application/json"
+                media_type="application/json",
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*"
+                }
             )
         
         return response 

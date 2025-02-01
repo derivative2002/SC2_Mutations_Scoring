@@ -1,0 +1,75 @@
+{
+  "mutation_count": {
+    "min": 4,
+    "max": 6,
+    "description": "每次生成的突变因子数量范围"
+  },
+  "fixed_mutations": [
+    {
+      "name": "风暴英雄",
+      "description": "总是会被选中的突变因子"
+    },
+    {
+      "name": "虚空裂隙",
+      "description": "总是会被选中的突变因子"
+    }
+  ],
+  "excluded_mutations": [
+    {
+      "name": "补给共享",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "短视症",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "焰火秀",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "杀戮机器人",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "炸弹机器人",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "幸运红包",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "礼尚往来",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "极性不定",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "混乱工作室",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "惧怕黑暗",
+      "description": "不会被选中的突变因子"
+    },
+    {
+      "name": "杀生业报",
+      "description": "不会被选中的突变因子"
+    }
+  ],
+  "weighted_mutations": [
+    {
+      "name": "暗无天日",
+      "weight": 2.0,
+      "description": "权重更高，更容易被选中"
+    },
+    {
+      "name": "丧尸大战",
+      "weight": 0.5,
+      "description": "权重更低，更难被选中"
+    }
+  ]
+} 

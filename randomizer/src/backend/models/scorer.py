@@ -1,17 +1,19 @@
-"""评分器模块."""
+"""评分模型."""
 
-import hashlib
+import os
 import json
+import numpy as np
+import hashlib
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 import torch
 
 from scoring.src.models.networks import MutationScorer as BaseScorer
 from scoring.src.data.preprocess import Vocab
-from ..config import Config
-from ..logger import logger
-from ..exceptions import ModelError
+from ..config import Config  # 改为相对导入
+from ..logger import logger  # 改为相对导入
+from ..exceptions import ModelError  # 改为相对导入
 
 _SCORER = None
 
@@ -65,7 +67,7 @@ class MutationScorer:
                 self.model = None
             
             # 初始化缓存
-            self.cache: Dict[str, float] = {}
+            self.cache: Dict[str, int] = {}  # 修改为整数缓存
             self.cache_size = cache_size
             self.test_mode = test_mode
             
@@ -92,23 +94,15 @@ class MutationScorer:
         Returns:
             缓存键
         """
-        # 对输入进行排序以确保一致性
-        sorted_commanders = sorted(commanders)
-        sorted_mutations = sorted(mutations)
-        
-        # 创建键值字典
-        key_dict = {
-            'map': map_name,
-            'commanders': sorted_commanders,
-            'mutations': sorted_mutations,
-            'ai': ai_type
+        data = {
+            "map": map_name,
+            "commanders": sorted(commanders),
+            "mutations": sorted(mutations),
+            "ai": ai_type
         }
-        
-        # 转换为JSON字符串并计算哈希
-        key_str = json.dumps(key_dict, sort_keys=True)
-        return hashlib.md5(key_str.encode()).hexdigest()
+        return hashlib.md5(json.dumps(data).encode()).hexdigest()
     
-    def _manage_cache(self, key: str, value: float):
+    def _manage_cache(self, key: str, value: int):  # 修改为整数值
         """管理缓存大小.
         
         Args:
@@ -126,7 +120,7 @@ class MutationScorer:
                map_name: str,
                commanders: List[str],
                mutations: List[str],
-               ai_type: Optional[str] = 'standard') -> float:
+               ai_type: Optional[str] = 'standard') -> int:  # 修改返回类型为整数
         """预测难度分数.
         
         Args:
@@ -156,7 +150,7 @@ class MutationScorer:
                     base_score += 0.5  # 增加依赖组合的难度
                 if "虚空裂隙" in mutations and "暗无天日" not in mutations:
                     base_score += 0.3  # 增加单个强力突变的难度
-                score = min(5.0, max(1.0, base_score))
+                score = min(5, max(1, round(base_score)))  # 确保是1-5的整数
                 self._manage_cache(cache_key, score)
                 return score
             
@@ -210,10 +204,9 @@ class MutationScorer:
                     mutation_mask=mutation_mask
                 )
                 
-                # 计算加权平均分数
-                probs = torch.softmax(logits, dim=-1)
-                scores = torch.arange(1, 6, dtype=torch.float)
-                score = (probs * scores).sum().item()
+                # 直接使用分类结果（0-4 映射到 1-5）
+                pred_class = torch.argmax(logits, dim=-1).item()  # 获取最高概率的类别
+                score = pred_class + 1  # 0-4 映射到 1-5
                 
                 # 缓存结果
                 self._manage_cache(cache_key, score)

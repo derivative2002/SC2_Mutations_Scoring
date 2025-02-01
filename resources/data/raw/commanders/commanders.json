@@ -4,32 +4,28 @@
     "id": "raynor",
     "race": "terran",
     "description": "擅长生物单位和空中支援。",
-    "image": "resources/images/commanders/雷诺.png",
-    "difficulty": 2
+    "image": "resources/images/commanders/雷诺.png"
   },
   {
     "name": "凯瑞甘",
     "id": "kerrigan",
     "race": "zerg",
     "description": "强大的英雄单位和快速扩张能力。",
-    "image": "resources/images/commanders/凯瑞甘.png",
-    "difficulty": 3
+    "image": "resources/images/commanders/凯瑞甘.png"
   },
   {
     "name": "阿塔尼斯",
     "id": "artanis",
     "race": "protoss",
     "description": "强大的部队和传送能力。",
-    "image": "resources/images/commanders/阿塔尼斯.png",
-    "difficulty": 2
+    "image": "resources/images/commanders/阿塔尼斯.png"
   },
   {
     "name": "斯旺",
     "id": "swann",
     "race": "terran",
     "description": "机械单位专家。",
-    "image": "resources/images/commanders/斯旺.png",
-    "difficulty": 3
+    "image": "resources/images/commanders/斯旺.png"
   },
   {
     "name": "扎加拉",
@@ -120,14 +116,6 @@
     "difficulty": 2
   },
   {
-    "name": "泽拉图",
-    "id": "zeratul",
-    "race": "protoss",
-    "description": "神器收集者。",
-    "image": "resources/images/commanders/泽拉图.png",
-    "difficulty": 3
-  },
-  {
     "name": "斯台特曼",
     "id": "stetmann",
     "race": "terran",
@@ -142,5 +130,12 @@
     "description": "帝国部队。",
     "image": "resources/images/commanders/蒙斯克.png",
     "difficulty": 3
+  },
+  {
+    "name": "泽拉图",
+    "id": "zeratul",
+    "race": "protoss",
+    "description": "神器收集者。",
+    "image": "resources/images/commanders/泽拉图.png"
   }
 ] 

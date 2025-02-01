@@ -1,0 +1,31 @@
+{
+  "incompatible_pairs": [
+    {
+      "mutation1": "暗无天日",
+      "mutation2": "惧怕黑暗",
+      "description": "视野限制叠加，游戏体验极差"
+    },
+    {
+      "mutation1": "时间扭曲",
+      "mutation2": "时空力场",
+      "description": "时间效果叠加，可能导致游戏失控"
+    },
+    {
+      "mutation1": "丧尸大战",
+      "mutation2": "异形寄生",
+      "description": "死亡单位效果冲突"
+    },
+    {
+      "mutation1": "不死邪魔",
+      "mutation2": "异形寄生",
+      "description": "死亡单位效果冲突"
+    }
+  ],
+  "required_pairs": [
+    {
+      "prerequisite": "风暴英雄",
+      "dependent": "虚空裂隙",
+      "description": "风暴英雄和虚空裂隙的组合"
+    }
+  ]
+} 

@@ -3,15 +3,20 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import type { ScoreRequest, ScoreResponse, RulesResponse } from '../types/api';
+import type { ScoreRequest, ScoreResponse, RulesResponse, MapInfo, CommanderInfo, MutationInfo } from '../types/api';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: '/api',
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  }
+    'Accept': 'application/json'
+  },
+  validateStatus: function (status) {
+    return status >= 200 && status < 500;
+  },
+  maxRedirects: 5,
+  proxy: false
 });
 
 // 错误处理
@@ -38,10 +43,10 @@ const handleError = (error: unknown) => {
   throw error;
 };
 
-export const getMaps = async (): Promise<string[]> => {
+export const getMaps = async (): Promise<MapInfo[]> => {
   try {
     console.log('获取地图列表...');
-    const response = await api.get<string[]>('/mutations/maps');
+    const response = await api.get<MapInfo[]>('/mutations/maps');
     console.log('地图列表:', response.data);
     return response.data;
   } catch (error) {
@@ -50,10 +55,10 @@ export const getMaps = async (): Promise<string[]> => {
   }
 };
 
-export const getCommanders = async (): Promise<string[]> => {
+export const getCommanders = async (): Promise<CommanderInfo[]> => {
   try {
     console.log('获取指挥官列表...');
-    const response = await api.get<string[]>('/mutations/commanders');
+    const response = await api.get<CommanderInfo[]>('/mutations/commanders');
     console.log('指挥官列表:', response.data);
     return response.data;
   } catch (error) {
@@ -62,10 +67,10 @@ export const getCommanders = async (): Promise<string[]> => {
   }
 };
 
-export const getMutations = async (): Promise<string[]> => {
+export const getMutations = async (): Promise<MutationInfo[]> => {
   try {
     console.log('获取突变因子列表...');
-    const response = await api.get<string[]>('/mutations/mutations');
+    const response = await api.get<MutationInfo[]>('/mutations/mutations');
     console.log('突变因子列表:', response.data);
     return response.data;
   } catch (error) {

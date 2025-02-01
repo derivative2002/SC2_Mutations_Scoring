@@ -2,61 +2,27 @@
  * 主题样式定义
  */
 
-import { ThemeConfig } from 'antd';
 import { createGlobalStyle } from 'styled-components';
 
-// 星际2主题色
+// 深色主题的颜色
 export const colors = {
-  primary: '#00A7E1', // 科技蓝
-  secondary: '#6B4FBB', // 虚空紫
-  accent: '#FF7F00', // 能量橙
-  background: '#0A0A0A', // 深空黑
-  surface: '#1A1A1A', // 面板黑
-  border: '#2A2A2A', // 边框灰
+  primary: '#165DFF',  // 主题蓝
+  secondary: '#722ED1', // 紫色
+  accent: '#FF7D00',   // 橙色
+  background: '#17171A', // 深色背景
+  surface: '#232324',   // 深色表面
+  surfaceLight: '#2A2A2B', // 稍亮的表面色
+  border: '#363637',   // 深色边框
   text: {
-    primary: '#FFFFFF',
-    secondary: '#AAAAAA',
-    accent: '#00A7E1',
+    primary: '#FFFFFF',   // 主要文字
+    secondary: '#86868A', // 次要文字
+    accent: '#4080FF',    // 强调文字
   },
   status: {
-    success: '#4CAF50',
-    warning: '#FF9800',
-    error: '#F44336',
-    info: '#2196F3',
-  },
-};
-
-// Ant Design主题配置
-export const antdTheme: ThemeConfig = {
-  token: {
-    colorPrimary: colors.primary,
-    colorSuccess: colors.status.success,
-    colorWarning: colors.status.warning,
-    colorError: colors.status.error,
-    colorInfo: colors.status.info,
-    colorTextBase: colors.text.primary,
-    colorBgBase: colors.background,
-    borderRadius: 4,
-    wireframe: false,
-  },
-  components: {
-    Button: {
-      primaryColor: colors.primary,
-      defaultBg: colors.surface,
-      defaultBorderColor: colors.border,
-    },
-    Card: {
-      colorBgContainer: colors.surface,
-    },
-    Select: {
-      colorBgContainer: colors.surface,
-      colorBorder: colors.border,
-    },
-    Slider: {
-      railBg: colors.border,
-      trackBg: colors.primary,
-      handleColor: colors.primary,
-    },
+    success: '#00B42A', // 成功绿
+    warning: '#FF7D00', // 警告橙
+    error: '#F53F3F',   // 错误红
+    info: '#165DFF',    // 信息蓝
   },
 };
 
@@ -67,30 +33,23 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     background-color: ${colors.background};
     color: ${colors.text.primary};
-    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", 
+                 "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", 
+                 "Helvetica Neue", sans-serif;
   }
 
-  // 星际2风格的标题
+  // 标题样式
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Bank Gothic", "Orbitron", sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
     color: ${colors.text.primary};
-    text-shadow: 0 0 10px ${colors.primary}40;
+    font-weight: 600;
   }
 
-  // 科技感的分割线
+  // 分割线
   hr {
     border: none;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      ${colors.primary}40,
-      ${colors.primary},
-      ${colors.primary}40,
-      transparent
-    );
+    background: ${colors.border};
   }
 
   // 自定义滚动条
@@ -100,7 +59,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   ::-webkit-scrollbar-track {
-    background: ${colors.surface};
+    background: ${colors.background};
   }
 
   ::-webkit-scrollbar-thumb {
@@ -108,13 +67,67 @@ export const GlobalStyle = createGlobalStyle`
     border-radius: 4px;
     
     &:hover {
-      background: ${colors.primary}80;
+      background: ${colors.primary}40;
     }
   }
 
   // 选中文本样式
   ::selection {
-    background: ${colors.primary}40;
+    background: ${colors.primary}20;
     color: ${colors.text.primary};
+  }
+
+  // Arco Design 全局样式覆盖
+  .arco-btn {
+    border-radius: 4px;
+  }
+
+  .arco-card {
+    border-radius: 8px;
+    background: ${colors.surface};
+    border-color: ${colors.border};
+    
+    .arco-card-header {
+      border-bottom-color: ${colors.border};
+    }
+  }
+
+  .arco-tag {
+    border-radius: 4px;
+  }
+
+  .arco-slider {
+    .arco-slider-road {
+      height: 4px;
+      background: ${colors.border};
+    }
+    .arco-slider-track {
+      background: ${colors.primary};
+      height: 4px;
+    }
+    .arco-slider-button {
+      width: 16px;
+      height: 16px;
+      border-color: ${colors.primary};
+      margin-top: -6px;  // 调整按钮垂直位置
+    }
+    .arco-slider-marks-text {
+      margin-top: 8px;  // 调整刻度文字的位置
+      color: ${colors.text.secondary};
+    }
+    .arco-slider-dot {
+      width: 8px;
+      height: 8px;
+      margin-top: -2px;  // 调整刻度点的垂直位置
+      border-color: ${colors.border};
+      
+      &.arco-slider-dot-active {
+        border-color: ${colors.primary};
+      }
+    }
+  }
+
+  .arco-space {
+    width: 100%;
   }
 `; 
