@@ -301,7 +301,7 @@ const getDifficultyColor = (difficulty: number): string => {
 };
 
 const MutationResult: React.FC<MutationResultProps> = ({ combination }) => {
-  const { map, commanders, mutations, difficulty, rules, ai_type } = combination;
+  const { map, commanders, mutations, difficulty = 0, rules = [], ai_type } = combination;
   const [loading, setLoading] = React.useState(true);
 
   const getImagePath = (name: string, type: string) => {
@@ -342,9 +342,9 @@ const MutationResult: React.FC<MutationResultProps> = ({ combination }) => {
       <LeftColumn>
         <StyledCard>
           <DifficultyInfo>
-            <IconFire style={{ fontSize: '24px', color: getDifficultyColor(difficulty) }} />
-            <DifficultyScore difficulty={difficulty}>
-              难度 {difficulty.toFixed(1)} 分
+            <IconFire style={{ fontSize: '24px', color: getDifficultyColor(difficulty || 0) }} />
+            <DifficultyScore difficulty={difficulty || 0}>
+              难度 {(difficulty || 0).toFixed(1)} 分
             </DifficultyScore>
           </DifficultyInfo>
 
