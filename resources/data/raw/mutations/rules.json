@@ -14,11 +14,6 @@
       "mutation1": "丧尸大战",
       "mutation2": "异形寄生",
       "description": "死亡单位效果冲突"
-    },
-    {
-      "mutation1": "不死邪魔",
-      "mutation2": "异形寄生",
-      "description": "死亡单位效果冲突"
     }
   ],
   "required_pairs": [

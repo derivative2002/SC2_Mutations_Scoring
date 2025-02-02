@@ -1,23 +1,5 @@
 [
   {
-    "name": "上班偷睡",
-    "id": "sleepy_worker",
-    "description": "工人单位会随机进入睡眠状态。",
-    "image": "resources/images/mutations/上班偷睡.png"
-  },
-  {
-    "name": "不死邪魔",
-    "id": "undying_evil",
-    "description": "敌方单位死亡后会复活。",
-    "image": "resources/images/mutations/不死邪魔.png"
-  },
-  {
-    "name": "不给糖果就捣蛋",
-    "id": "trick_or_treat",
-    "description": "随机获得奖励或惩罚。",
-    "image": "resources/images/mutations/不给糖果就捣蛋.png"
-  },
-  {
     "name": "丧尸大战",
     "id": "walking_infested",
     "description": "被击杀的单位会变成敌对感染体。",
@@ -46,12 +28,6 @@
     "id": "barrier",
     "description": "单位获得减伤护盾。",
     "image": "resources/images/mutations/减伤屏障.png"
-  },
-  {
-    "name": "刺头兵",
-    "id": "aggressive_deployment",
-    "description": "敌方单位更具攻击性。",
-    "image": "resources/images/mutations/刺头兵.png"
   },
   {
     "name": "力量蜕变",
@@ -120,22 +96,10 @@
     "image": "resources/images/mutations/强行征用.png"
   },
   {
-    "name": "惧怕黑暗",
-    "id": "fear_of_darkness",
-    "description": "黑暗中的单位会受到恐惧效果。",
-    "image": "resources/images/mutations/惧怕黑暗.png"
-  },
-  {
     "name": "拿钱说话",
     "id": "money_talks",
     "description": "资源影响单位能力。",
     "image": "resources/images/mutations/拿钱说话.png"
-  },
-  {
-    "name": "捕杀火鸡",
-    "id": "turkey_hunt",
-    "description": "随机单位变成火鸡。",
-    "image": "resources/images/mutations/捕杀火鸡.png"
   },
   {
     "name": "无边恐惧",
@@ -192,12 +156,6 @@
     "image": "resources/images/mutations/来去无踪.png"
   },
   {
-    "name": "极度谨慎",
-    "id": "extreme_caution",
-    "description": "单位移动速度降低但防御提升。",
-    "image": "resources/images/mutations/极度谨慎.png"
-  },
-  {
     "name": "极性不定",
     "id": "polarity",
     "description": "单位属性会随机变化。",
@@ -208,12 +166,6 @@
     "id": "nuclear_strike",
     "description": "定期发射核弹攻击。",
     "image": "resources/images/mutations/核弹打击.png"
-  },
-  {
-    "name": "消极战斗",
-    "id": "negative_combat",
-    "description": "单位战斗能力降低。",
-    "image": "resources/images/mutations/消极战斗.png"
   },
   {
     "name": "混乱工作室",
@@ -270,12 +222,6 @@
     "image": "resources/images/mutations/短视症.png"
   },
   {
-    "name": "石像狂热者",
-    "id": "statue_maniac",
-    "description": "单位可能被石化。",
-    "image": "resources/images/mutations/石像狂热者.png"
-  },
-  {
     "name": "礼尚往来",
     "id": "gift_exchange",
     "description": "单位可以交换能力。",
@@ -318,12 +264,6 @@
     "image": "resources/images/mutations/行尸走肉.png"
   },
   {
-    "name": "补给共享",
-    "id": "supply_share",
-    "description": "补给限制共享。",
-    "image": "resources/images/mutations/补给共享.png"
-  },
-  {
     "name": "超远视距",
     "id": "long_range_vision",
     "description": "单位视野范围大幅提升。",
@@ -340,12 +280,6 @@
     "id": "offensive_deployment",
     "description": "敌方单位获得进攻增益。",
     "image": "resources/images/mutations/进攻部署.png"
-  },
-  {
-    "name": "迷失方向",
-    "id": "lost_direction",
-    "description": "单位移动方向随机改变。",
-    "image": "resources/images/mutations/迷失方向.png"
   },
   {
     "name": "速度狂魔",
